@@ -29,6 +29,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
   exec: ExecutionContext
 ) extends AbstractController(cc) {
 
+  // todo - validation fails because there is no user_id claim in token
   def validateToken: Action[AnyContent] =
     authAction.async { implicit userRequest =>
       println("Successfully validated token via auth action")
@@ -51,7 +52,6 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
     }
 
   // todo - add a recovery handler
-  // and then SSO
   // and then mailhog
   def logout: Action[AnyContent] =
     Action.async { implicit request =>
@@ -62,7 +62,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       }
     }
 
-  def generateToken: Action[AnyContent] =
+  def login: Action[AnyContent] =
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
         authApi
@@ -75,11 +75,25 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       }
     }
 
+  // todo - include realm in OIDC callback URL, current we have harcoded google realm for auth token from auth code?
+  def oidcCallback(sessionState: String, state: String, code: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      authApi
+        .generateToken(code, "webapp")
+        .map { token => Ok(token) }
+    }
+
+  def ssoLogin(provider: String): Action[AnyContent] =
+    Action.async { implicit request =>
+      authApi.oidcLoginWithRedirect(provider, request)
+    }
+
   def refreshAccessToken: Action[AnyContent] =
     Action.async { implicit request =>
-      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
+      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
         authApi
           .refreshAccessToken(
+            formData.dataParts("realm").head,
             formData.dataParts("client_id").head,
             formData.dataParts("grant_type").head,
             formData.dataParts("refresh_token").head,

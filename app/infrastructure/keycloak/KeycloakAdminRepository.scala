@@ -34,4 +34,5 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient)(implicit ec: Ex
 object KeycloakAdminRepository {
   // todo - config
   val nativeAuthRealm = "NativeAuth"
+  val googleAuthRealm = "GoogleAuth"
 }

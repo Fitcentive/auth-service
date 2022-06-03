@@ -4,7 +4,9 @@
 # ~~~~
 
 GET      /health                                            controllers.HealthController.healthCheck
-POST     /auth/login                                        controllers.AuthController.generateToken
+POST     /auth/login                                        controllers.AuthController.login
+GET      /auth/login/:provider                              controllers.AuthController.ssoLogin(provider: String)
+GET      /auth/callback                                     controllers.AuthController.oidcCallback(session_state: String, state: String, code: String)
 POST     /auth/refresh                                      controllers.AuthController.refreshAccessToken
 POST     /auth/logout                                       controllers.AuthController.logout
 POST     /auth/reset-password                               controllers.AuthController.resetPassword

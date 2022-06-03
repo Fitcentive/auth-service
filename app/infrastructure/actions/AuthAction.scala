@@ -19,6 +19,7 @@ class AuthAction @Inject() (bodyParser: BodyParsers.Default, tokenValidationServ
 
   override def invokeBlock[A](request: Request[A], block: UserRequest[A] => Future[Result]): Future[Result] =
     extractBearerToken(request) map { token =>
+      // todo - validation fails here because SSO token does not have user_id field
       tokenValidationService.validateJwt[AuthorizedUser](token) match {
         case Right(authorizedUser) => block(UserRequest(authorizedUser, request))
         case Left(error)           => Future.successful(Results.Unauthorized(error.reason))
