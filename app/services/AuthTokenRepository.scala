@@ -8,5 +8,6 @@ import scala.concurrent.Future
 
 @ImplementedBy(classOf[KeycloakTokenRepository])
 trait AuthTokenRepository {
-  def getToken(username: String, password: String): Future[JsValue]
+  def getToken(username: String, password: String, clientId: String): Future[JsValue]
+  def logout(clientId: String, refreshToken: String): Future[Unit]
 }

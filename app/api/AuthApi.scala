@@ -9,10 +9,14 @@ import scala.concurrent.Future
 
 class AuthApi @Inject() (authAdminRepo: AuthAdminRepository, authTokenRepository: AuthTokenRepository) {
 
-  def createNewUser(user: User): Future[Unit] = authAdminRepo.createUser(user.userId, user.email, user.ssoEnabled)
+  def createNewUser(user: User): Future[Unit] = authAdminRepo.createUser(user)
 
   def resetPassword(userName: String, password: String): Future[Unit] = authAdminRepo.resetPassword(userName, password)
 
-  def generateToken(userName: String, password: String): Future[JsValue] =
-    authTokenRepository.getToken(userName, password)
+  def generateToken(userName: String, password: String, clientId: String): Future[JsValue] =
+    authTokenRepository.getToken(userName, password, clientId)
+
+  def logout(clientId: String, refreshToken: String): Future[Unit] =
+    authTokenRepository.logout(clientId, refreshToken)
+
 }

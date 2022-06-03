@@ -1,8 +1,9 @@
 package infrastructure.keycloak
 
+import domain.User
+import play.api.Logger
 import services.AuthAdminRepository
 
-import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -13,16 +14,14 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient)(implicit ec: Ex
 
   import KeycloakAdminRepository._
 
-  override def createUser(id: UUID, emailId: String, ssoEnabled: Boolean = false): Future[Unit] =
+  private val logger: Logger = Logger(this.getClass)
+
+  override def createUser(user: User): Future[Unit] =
     Future {
-      println("Keycloak admin repo: ")
-      if (!ssoEnabled) {
-        if (!client.userExists(nativeAuthRealm, emailId)) {
-          println("No client, adding new user")
-          client.addNewUser(nativeAuthRealm, id, emailId, "", "", ssoEnabled)
-        } else {
-          println("USER ALREADY EXISTS")
-        }
+      if (!user.ssoEnabled) {
+        if (!client.userExists(nativeAuthRealm, user.email))
+          client.addNewUser(nativeAuthRealm, user.userId, user.email, user.firstName, user.lastName, user.ssoEnabled)
+        else ()
       } else ()
     }
 
@@ -33,5 +32,6 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient)(implicit ec: Ex
 }
 
 object KeycloakAdminRepository {
+  // todo - config
   val nativeAuthRealm = "NativeAuth"
 }

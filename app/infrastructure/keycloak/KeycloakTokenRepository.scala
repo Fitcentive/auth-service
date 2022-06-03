@@ -1,10 +1,8 @@
 package infrastructure.keycloak
 
-import akka.stream.scaladsl.Source
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
-import play.api.mvc.{Headers, MultipartFormData}
-import play.api.mvc.MultipartFormData.DataPart
+import play.api.mvc.MultipartFormData
 import services.{AuthTokenRepository, SettingsService}
 
 import javax.inject.{Inject, Singleton}
@@ -15,26 +13,28 @@ class KeycloakTokenRepository @Inject() (wsClient: WSClient, settingsService: Se
   ec: ExecutionContext
 ) extends AuthTokenRepository {
 
-  override def getToken(username: String, password: String): Future[JsValue] = {
-    val host = settingsService.keycloakConfig.getString("server-url")
+  override def logout(clientId: String, refreshToken: String): Future[Unit] = {
+    val host = settingsService.keycloakConfig.serverUrl
+    val dataParts = Map("refresh_token" -> Seq(refreshToken), "client_id" -> Seq(clientId))
+    wsClient
+      .url(s"$host/realms/${KeycloakAdminRepository.nativeAuthRealm}/protocol/openid-connect/logout")
+      .withHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
+      .post(dataParts)
+      .map(_ => ())
+  }
+
+  override def getToken(username: String, password: String, clientId: String): Future[JsValue] = {
+    val host = settingsService.keycloakConfig.serverUrl
     val dataParts = Map(
       "grant_type" -> Seq("password"),
       "username" -> Seq(username),
       "password" -> Seq(password),
-      "client_id" -> Seq("webapp"),
+      "client_id" -> Seq(clientId),
     )
-    val multiPartFormData = MultipartFormData(dataParts, Seq.empty, Seq.empty)
-    println("Trying to get token now")
     wsClient
       .url(s"$host/realms/${KeycloakAdminRepository.nativeAuthRealm}/protocol/openid-connect/token")
       .withHttpHeaders(("Content-Type" -> "application/x-www-form-urlencoded"), ("Accept" -> "application/json"))
       .post(dataParts)
-      .map { response =>
-        println(s"Response has been received with status: ${response.status}")
-        println(response.body)
-        println("-------------------------")
-        println(response.json)
-        response.json
-      }
+      .map(_.json)
   }
 }

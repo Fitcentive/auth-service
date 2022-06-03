@@ -1,14 +1,13 @@
 package controllers
 
 import javax.inject._
-import akka.actor.ActorSystem
 import api.AuthApi
 import domain.{PasswordReset, User}
+import infrastructure.actions.AuthAction
 import play.api.mvc._
-import play.api.libs.json.{JsError, JsSuccess, JsValue, Json, Reads}
+import play.api.libs.json.{JsError, JsSuccess, JsValue, Reads}
 
-import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * This controller creates an `Action` that demonstrates how to write
@@ -26,9 +25,16 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
   * a blocking API.
   */
 @Singleton
-class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, actorSystem: ActorSystem)(implicit
+class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, authAction: AuthAction)(implicit
   exec: ExecutionContext
 ) extends AbstractController(cc) {
+
+  def validateToken: Action[AnyContent] =
+    authAction.async { implicit userRequest =>
+      println("Successfully validated token via auth action")
+      println(userRequest.authorizedUser)
+      Future.successful(Ok("Success"))
+    }
 
   def createNewUser: Action[AnyContent] =
     Action.async { implicit request =>
@@ -45,11 +51,30 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, acto
       }
     }
 
+  // todo - this needs fixing
+  // todo - add a recovery handler
+  // after this, do refresh flow
+  // and then SSO
+  // and then mailhog
+  def logout: Action[AnyContent] =
+    Action.async { implicit request =>
+      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
+        println("About to use authApi")
+        authApi
+          .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head)
+          .map(_ => NoContent)
+      }
+    }
+
   def generateToken: Action[AnyContent] =
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
         authApi
-          .generateToken(formData.dataParts("username").head, formData.dataParts("password").head)
+          .generateToken(
+            formData.dataParts("username").head,
+            formData.dataParts("password").head,
+            formData.dataParts("client_id").head
+          )
           .map(Ok(_))
       }
     }

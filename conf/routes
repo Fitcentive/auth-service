@@ -4,9 +4,12 @@
 # ~~~~
 
 GET      /health                                            controllers.HealthController.healthCheck
-POST     /auth/token                                        controllers.AuthController.generateToken
+POST     /auth/login                                        controllers.AuthController.generateToken
+POST     /auth/logout                                       controllers.AuthController.logout
 POST     /auth/reset-password                               controllers.AuthController.resetPassword
 POST     /auth/create-user                                  controllers.AuthController.createNewUser
+
+GET      /auth/check-token                                  controllers.AuthController.validateToken
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
