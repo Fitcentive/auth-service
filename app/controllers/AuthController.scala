@@ -39,7 +39,6 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
   def createNewUser: Action[AnyContent] =
     Action.async { implicit request =>
       validateJson[User](request.body.asJson.get) { user =>
-        println(s"Requested creating of new user for ${user}")
         authApi.createNewUser(user).map(_ => Ok("Successful"))
       }
     }
@@ -51,15 +50,12 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       }
     }
 
-  // todo - this needs fixing
   // todo - add a recovery handler
-  // after this, do refresh flow
   // and then SSO
   // and then mailhog
   def logout: Action[AnyContent] =
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
-        println("About to use authApi")
         authApi
           .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head)
           .map(_ => NoContent)
@@ -74,6 +70,19 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
             formData.dataParts("username").head,
             formData.dataParts("password").head,
             formData.dataParts("client_id").head
+          )
+          .map(Ok(_))
+      }
+    }
+
+  def refreshAccessToken: Action[AnyContent] =
+    Action.async { implicit request =>
+      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
+        authApi
+          .refreshAccessToken(
+            formData.dataParts("client_id").head,
+            formData.dataParts("grant_type").head,
+            formData.dataParts("refresh_token").head,
           )
           .map(Ok(_))
       }

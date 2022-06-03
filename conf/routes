@@ -5,6 +5,7 @@
 
 GET      /health                                            controllers.HealthController.healthCheck
 POST     /auth/login                                        controllers.AuthController.generateToken
+POST     /auth/refresh                                      controllers.AuthController.refreshAccessToken
 POST     /auth/logout                                       controllers.AuthController.logout
 POST     /auth/reset-password                               controllers.AuthController.resetPassword
 POST     /auth/create-user                                  controllers.AuthController.createNewUser
