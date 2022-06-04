@@ -1,6 +1,6 @@
 package infrastructure.actions
 
-import domain.{AuthorizedUser, JwtConfig, UserRequest}
+import domain.{AuthorizedUser, UserRequest}
 import play.api.http.HeaderNames
 import play.api.mvc.{ActionBuilder, AnyContent, BodyParser, BodyParsers, Request, Result, Results, WrappedRequest}
 import services.{SettingsService, TokenValidationService}

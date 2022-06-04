@@ -1,4 +1,4 @@
-package domain
+package domain.config
 
 import com.typesafe.config.Config
 
@@ -8,7 +8,8 @@ case class KeycloakConfig(
   clientId: String,
   clientSecret: String,
   username: String,
-  password: String
+  password: String,
+  realms: KeycloakAuthRealms,
 )
 
 object KeycloakConfig {
@@ -20,5 +21,7 @@ object KeycloakConfig {
       clientSecret = config.getString("client-secret"),
       username = config.getString("username"),
       password = config.getString("password"),
+      realms =
+        KeycloakAuthRealms(google = config.getString("realms.google"), native = config.getString("realms.native"))
     )
 }

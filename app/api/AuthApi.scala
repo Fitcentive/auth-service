@@ -1,6 +1,7 @@
 package api
 
 import domain.User
+import infrastructure.utils.AuthProviderOps
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Request, Result}
@@ -11,8 +12,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class AuthApi @Inject() (
   authAdminRepo: AuthAdminRepository,
-  settingsService: SettingsService,
-  authTokenRepository: AuthTokenRepository
+  authTokenRepository: AuthTokenRepository,
+  authProviderOps: AuthProviderOps,
 )(implicit ec: ExecutionContext) {
 
   def createNewUser(user: User): Future[Unit] = authAdminRepo.createUser(user)
@@ -20,21 +21,17 @@ class AuthApi @Inject() (
   def resetPassword(userName: String, password: String): Future[Unit] = authAdminRepo.resetPassword(userName, password)
 
   def oidcLoginWithRedirect(provider: String, rawRequest: Request[AnyContent]): Future[Result] = {
-    val serverUrl = settingsService.keycloakConfig.serverUrl
     for {
-      loginUrl <- provider match {
-        case "google" => Future.successful(s"$serverUrl/${settingsService.keycloakConfig.googleOidcLoginUrl}")
-        case _        => Future.failed(new Exception("Unrecognized OIDC provider"))
-      }
+      loginUrl <- authProviderOps.providerToLoginUrl(provider)
       result <- Future.successful(Redirect(loginUrl, rawRequest.queryString))
     } yield result
   }
 
-  def generateToken(userName: String, password: String, clientId: String): Future[JsValue] =
+  def generateTokenFromCredentials(userName: String, password: String, clientId: String): Future[JsValue] =
     authTokenRepository.getTokenWithCredentials(userName, password, clientId)
 
-  def generateToken(authCode: String, clientId: String): Future[JsValue] =
-    authTokenRepository.getTokenWithAuthCode(authCode, clientId)
+  def generateTokenFromAuthCode(provider: String, authCode: String, clientId: String): Future[JsValue] =
+    authTokenRepository.getTokenWithAuthCode(provider, authCode, clientId)
 
   def refreshAccessToken(realm: String, clientId: String, grantType: String, refreshToken: String): Future[JsValue] =
     authTokenRepository.refreshAccessToken(realm, clientId, grantType, refreshToken)

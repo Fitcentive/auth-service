@@ -1,4 +1,4 @@
-package domain
+package domain.errors
 
 import java.util.UUID
 

@@ -1,6 +1,6 @@
 package infrastructure.jwt
 
-import domain.JwtConfig
+import domain.config.JwtConfig
 import domain.errors.JwtValidationError._
 import domain.errors.JwtValidationError
 import io.circe.{Decoder, DecodingFailure, ParsingFailure}

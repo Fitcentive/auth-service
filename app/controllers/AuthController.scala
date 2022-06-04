@@ -29,11 +29,8 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
   exec: ExecutionContext
 ) extends AbstractController(cc) {
 
-  // todo - validation fails because there is no user_id claim in token
   def validateToken: Action[AnyContent] =
     authAction.async { implicit userRequest =>
-      println("Successfully validated token via auth action")
-      println(userRequest.authorizedUser)
       Future.successful(Ok("Success"))
     }
 
@@ -66,7 +63,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
         authApi
-          .generateToken(
+          .generateTokenFromCredentials(
             formData.dataParts("username").head,
             formData.dataParts("password").head,
             formData.dataParts("client_id").head
@@ -75,11 +72,10 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       }
     }
 
-  // todo - include realm in OIDC callback URL, current we have harcoded google realm for auth token from auth code?
-  def oidcCallback(sessionState: String, state: String, code: String): Action[AnyContent] =
+  def oidcCallback(provider: String, sessionState: String, state: String, code: String): Action[AnyContent] =
     Action.async { implicit request =>
       authApi
-        .generateToken(code, "webapp")
+        .generateTokenFromAuthCode(provider, code, "webapp")
         .map { token => Ok(token) }
     }
 

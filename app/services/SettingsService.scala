@@ -2,7 +2,7 @@ package services
 
 import com.google.inject.ImplementedBy
 import com.typesafe.config.Config
-import domain.{JwtConfig, KeycloakConfig}
+import domain.config.{JwtConfig, KeycloakConfig}
 import infrastructure.settings.AppConfigService
 
 @ImplementedBy(classOf[AppConfigService])

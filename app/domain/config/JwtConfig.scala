@@ -1,4 +1,4 @@
-package domain
+package domain.config
 
 import com.typesafe.config.Config
 import pdi.jwt.JwtAlgorithm

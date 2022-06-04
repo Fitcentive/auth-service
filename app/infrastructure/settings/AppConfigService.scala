@@ -1,7 +1,7 @@
 package infrastructure.settings
 
 import com.typesafe.config.Config
-import domain.{JwtConfig, KeycloakConfig}
+import domain.config.{JwtConfig, KeycloakConfig}
 import play.api.Configuration
 import services.SettingsService
 

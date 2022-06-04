@@ -2,7 +2,7 @@ package domain.errors
 
 import java.util.UUID
 
-sealed abstract class JwtValidationError(val reason: String) extends domain.Error {
+sealed abstract class JwtValidationError(val reason: String) extends Error {
   override def code: UUID =
     JwtValidationError.code
 }
