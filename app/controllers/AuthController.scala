@@ -4,30 +4,16 @@ import javax.inject._
 import api.AuthApi
 import domain.{PasswordReset, User}
 import infrastructure.actions.AuthAction
+import infrastructure.utils.ControllerOps
 import play.api.mvc._
-import play.api.libs.json.{JsError, JsSuccess, JsValue, Reads}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-/**
-  * This controller creates an `Action` that demonstrates how to write
-  * simple asynchronous code in a controller. It uses a timer to
-  * asynchronously delay sending a response for 1 second.
-  *
-  * @param cc standard controller components
-  * @param actorSystem We need the `ActorSystem`'s `Scheduler` to
-  * run code after a delay.
-  * @param exec We need an `ExecutionContext` to execute our
-  * asynchronous code.  When rendering content, you should use Play's
-  * default execution context, which is dependency injected.  If you are
-  * using blocking operations, such as database or network access, then you should
-  * use a different custom execution context that has a thread pool configured for
-  * a blocking API.
-  */
 @Singleton
 class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, authAction: AuthAction)(implicit
   exec: ExecutionContext
-) extends AbstractController(cc) {
+) extends AbstractController(cc)
+  with ControllerOps {
 
   def validateToken: Action[AnyContent] =
     authAction.async { implicit userRequest =>
@@ -37,25 +23,34 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
   def createNewUser: Action[AnyContent] =
     Action.async { implicit request =>
       validateJson[User](request.body.asJson.get) { user =>
-        authApi.createNewUser(user).map(_ => Ok("Successful"))
+        authApi
+          .createNewUser(user)
+          .map {
+            case Left(error) => domainErrorHandler(error)
+            case Right(_)    => Ok("Successful")
+          }
+          .recover(resultErrorAsyncHandler)
       }
     }
 
   def resetPassword: Action[AnyContent] =
     Action.async { implicit request =>
       validateJson[PasswordReset](request.body.asJson.get) { parameters =>
-        authApi.resetPassword(parameters.username, parameters.password).map(_ => Ok("Successful"))
+        authApi
+          .resetPassword(parameters.username, parameters.password)
+          .map(_ => Ok("Successful"))
+          .recover(resultErrorAsyncHandler)
       }
     }
 
-  // todo - add a recovery handler
-  // and then mailhog
+  // todo - add mailhog next
   def logout: Action[AnyContent] =
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
         authApi
           .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head)
           .map(_ => NoContent)
+          .recover(resultErrorAsyncHandler)
       }
     }
 
@@ -69,6 +64,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
             formData.dataParts("client_id").head
           )
           .map(Ok(_))
+          .recover(resultErrorAsyncHandler)
       }
     }
 
@@ -76,12 +72,22 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
     Action.async { implicit request =>
       authApi
         .generateTokenFromAuthCode(provider, code, "webapp")
-        .map { token => Ok(token) }
+        .map {
+          case Right(token) => Ok(token)
+          case Left(error)  => domainErrorHandler(error)
+        }
+        .recover(resultErrorAsyncHandler)
     }
 
   def ssoLogin(provider: String): Action[AnyContent] =
     Action.async { implicit request =>
-      authApi.oidcLoginWithRedirect(provider, request)
+      authApi
+        .oidcLoginWithRedirect(provider, request)
+        .map {
+          case Right(result) => result
+          case Left(error)   => domainErrorHandler(error)
+        }
+        .recover(resultErrorAsyncHandler)
     }
 
   def refreshAccessToken: Action[AnyContent] =
@@ -95,14 +101,8 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
             formData.dataParts("refresh_token").head,
           )
           .map(Ok(_))
+          .recover(resultErrorAsyncHandler)
       }
     }
-
-  def validateJson[A](json: JsValue)(block: A => Future[Result])(implicit reads: Reads[A]): Future[Result] = {
-    json.validate[A] match {
-      case value: JsSuccess[A] => block(value.get)
-      case error: JsError      => Future.successful(BadRequest(s"Failed to validate JSON, error: $error"))
-    }
-  }
 
 }

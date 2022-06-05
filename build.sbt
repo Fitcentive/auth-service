@@ -22,7 +22,10 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic"        % "0.14.1",
   "io.circe" %% "circe-generic-extras" % "0.14.1",
   "io.circe" %% "circe-parser"         % "0.14.1",
-  specs2      % Test,
+  //Cats
+  "org.typelevel" %% "cats-core"   % "2.7.0",
+  "org.typelevel" %% "cats-effect" % "3.3.4",
+  specs2           % Test,
   guice
 )
 

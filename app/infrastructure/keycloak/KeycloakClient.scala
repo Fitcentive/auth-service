@@ -5,6 +5,8 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.keycloak.representations.idm.{CredentialRepresentation, UserRepresentation}
 import org.passay.{CharacterRule, EnglishCharacterData, PasswordGenerator}
+import domain.errors
+import play.api.Logging
 
 import java.security.SecureRandom
 import java.time.Instant
@@ -13,8 +15,9 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import scala.jdk.CollectionConverters._
 import scala.util.Random
+import scala.util.chaining.scalaUtilChainingOps
 
-class KeycloakClient(keycloak: Keycloak) {
+class KeycloakClient(keycloak: Keycloak) extends Logging {
 
   import KeycloakClient._
 
@@ -51,14 +54,14 @@ class KeycloakClient(keycloak: Keycloak) {
     users.create(rep)
   }
 
-  def resetPassword(realm: String, username: String, password: String): Unit = {
+  def resetPassword(realm: String, username: String, password: String): Either[errors.Error, Unit] = {
     val users = keycloak.realm(realm).users()
     val userOpt = users.search(username).asScala.find(_.getUsername == username)
 
     userOpt match {
       case None =>
-        println(s"[KEYCLOAK] resetPassword Could not find user with username $username on realm $realm")
-        throw new Exception("Bad state, need user")
+        logger.error(s"[KEYCLOAK] resetPassword Could not find user with username $username on realm $realm")
+        Left(KeycloakUserNotFound)
       case Some(user) =>
         val credentials = new CredentialRepresentation
         credentials.setValue(password)
@@ -66,7 +69,7 @@ class KeycloakClient(keycloak: Keycloak) {
         credentials.setType(CredentialRepresentation.PASSWORD)
         users.get(user.getId).resetPassword(credentials)
         user.setRequiredActions(List.empty.asJava)
-        users.get(user.getId).update(user)
+        users.get(user.getId).update(user).pipe(Right.apply)
     }
   }
 
@@ -78,6 +81,12 @@ class KeycloakClient(keycloak: Keycloak) {
 }
 
 object KeycloakClient {
+
+  case object KeycloakUserNotFound extends domain.errors.Error {
+    override def code: UUID = UUID.fromString("8d2569ef-a4ff-43e5-aa71-02e9527076bf")
+    override def reason: String = "Keycloak user not found"
+  }
+
   private val userIdUserAttributeKey = "user_id"
 
   private val CommonSpecialCharacters: org.passay.CharacterData = new org.passay.CharacterData() {
@@ -85,13 +94,10 @@ object KeycloakClient {
     override def getCharacters: String = "!%@#$"
   }
 
-  // The name of the hashing algorithm we will use
   private val PBKDF2: String = "PBKDF2WithHmacSHA1"
 
-  // The key factory instance
   private lazy val secretKeyFactory = SecretKeyFactory.getInstance(PBKDF2)
 
-  // A function to do the PBKDF2 hashing
   private def pbkdf2(password: Array[Char], salt: Array[Byte], iterations: Int, length: Int): Array[Byte] = {
     val spec = new PBEKeySpec(password, salt, iterations, length)
     secretKeyFactory.generateSecret(spec).getEncoded

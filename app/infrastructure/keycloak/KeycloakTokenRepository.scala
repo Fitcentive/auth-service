@@ -1,17 +1,19 @@
 package infrastructure.keycloak
 
+import cats.data.EitherT
+import infrastructure.contexts.KeycloakServerExecutionContext
 import infrastructure.utils.AuthProviderOps
 import play.api.libs.json.JsValue
-import play.api.libs.ws.{EmptyBody, WSClient}
-import play.api.mvc.{AnyContent, MultipartFormData, Request}
-import services.{AuthTokenRepository, SettingsService}
+import play.api.libs.ws.WSClient
+import services.AuthTokenRepository
+import domain.errors
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
 class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: AuthProviderOps)(implicit
-  ec: ExecutionContext
+  ec: KeycloakServerExecutionContext
 ) extends AuthTokenRepository {
 
   override def refreshAccessToken(
@@ -56,7 +58,11 @@ class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: Au
       .map(_.json)
   }
 
-  override def getTokenWithAuthCode(provider: String, authCode: String, clientId: String): Future[JsValue] = {
+  override def getTokenWithAuthCode(
+    provider: String,
+    authCode: String,
+    clientId: String
+  ): Future[Either[errors.Error, JsValue]] = {
     val dataParts =
       Map(
         "grant_type" -> Seq("authorization_code"),
@@ -65,13 +71,14 @@ class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: Au
         "client_secret" -> Seq("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"),
         "redirect_uri" -> Seq("http://localhost:9000/auth/callback/google")
       )
-    for {
-      providerRealm <- authProviderOps.providerToRealm(Some(provider))
-      result <-
+    (for {
+      providerRealm <- EitherT[Future, errors.Error, String](authProviderOps.providerToRealm(Some(provider)))
+      result <- EitherT.right[errors.Error](
         wsClient
           .url(s"${authProviderOps.authServerHost}/realms/$providerRealm/protocol/openid-connect/token")
           .withHttpHeaders(("Content-Type" -> "application/x-www-form-urlencoded"), ("Accept" -> "application/json"))
           .post(dataParts)
-    } yield result.json
+      )
+    } yield result.json).value
   }
 }

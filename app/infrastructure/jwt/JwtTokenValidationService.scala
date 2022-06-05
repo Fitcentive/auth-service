@@ -76,9 +76,7 @@ class JwtTokenValidationService @Inject() (settingsService: SettingsService, pub
         subject.fold(true)(sub => jwtClaim.subject.fold(false)(_ == sub)) &&
         audience.fold(true)(aud => jwtClaim.audience.fold(false)(_ == aud))
 
-    if (isValid)
-      Right(jwtClaim)
-    else
-      Left(BadToken(token, "Invalid issuer, subject, or audience."))
+    if (isValid) Right(jwtClaim)
+    else Left(BadToken(token, "Invalid issuer, subject, or audience."))
   }
 }
