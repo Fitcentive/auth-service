@@ -6,7 +6,7 @@ import domain.errors
 import infrastructure.utils.AuthProviderOps.UnrecognizedOidcProvider
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Reads}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait ControllerOps extends Logging {
 
@@ -19,7 +19,16 @@ trait ControllerOps extends Logging {
       InternalServerError(e.getMessage)
   }
 
-  def domainErrorHandler: PartialFunction[errors.Error, Result] = {
+  def handleEitherResult[A](
+    result: Either[errors.Error, A]
+  )(ifSuccess: A => Result)(implicit ec: ExecutionContext): Result = {
+    result match {
+      case Left(error)  => domainErrorHandler(error)
+      case Right(value) => ifSuccess(value)
+    }
+  }
+
+  private def domainErrorHandler: PartialFunction[errors.Error, Result] = {
     case UnrecognizedOidcProvider => BadRequest(UnrecognizedOidcProvider.reason)
   }
 

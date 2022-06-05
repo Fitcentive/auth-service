@@ -25,10 +25,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       validateJson[User](request.body.asJson.get) { user =>
         authApi
           .createNewUser(user)
-          .map {
-            case Left(error) => domainErrorHandler(error)
-            case Right(_)    => Ok("Successful")
-          }
+          .map(handleEitherResult(_)(_ => Ok("Successful")))
           .recover(resultErrorAsyncHandler)
       }
     }
@@ -72,10 +69,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
     Action.async { implicit request =>
       authApi
         .generateTokenFromAuthCode(provider, code, "webapp")
-        .map {
-          case Right(token) => Ok(token)
-          case Left(error)  => domainErrorHandler(error)
-        }
+        .map(handleEitherResult(_)(token => Ok(token)))
         .recover(resultErrorAsyncHandler)
     }
 
@@ -83,10 +77,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
     Action.async { implicit request =>
       authApi
         .oidcLoginWithRedirect(provider, request)
-        .map {
-          case Right(result) => result
-          case Left(error)   => domainErrorHandler(error)
-        }
+        .map(handleEitherResult(_)(identity))
         .recover(resultErrorAsyncHandler)
     }
 
