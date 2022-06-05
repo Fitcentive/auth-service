@@ -65,10 +65,11 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       }
     }
 
-  def oidcCallback(provider: String, sessionState: String, state: String, code: String): Action[AnyContent] =
+  // todo - validate on `state`? Might need distributed cache
+  def oidcCallback(provider: String, clientId: String, code: String): Action[AnyContent] =
     Action.async { implicit request =>
       authApi
-        .generateTokenFromAuthCode(provider, code, "webapp")
+        .generateTokenFromAuthCode(provider, code, clientId)
         .map(handleEitherResult(_)(token => Ok(token)))
         .recover(resultErrorAsyncHandler)
     }

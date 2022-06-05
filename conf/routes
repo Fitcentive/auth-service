@@ -6,7 +6,7 @@
 GET      /health                                            controllers.HealthController.healthCheck
 POST     /auth/login                                        controllers.AuthController.login
 GET      /auth/login/:provider                              controllers.AuthController.ssoLogin(provider: String)
-GET      /auth/callback/:provider                           controllers.AuthController.oidcCallback(provider: String, session_state: String, state: String, code: String)
+GET      /auth/:provider/callback/:clientId                 controllers.AuthController.oidcCallback(provider: String, clientId: String, code: String)
 POST     /auth/refresh                                      controllers.AuthController.refreshAccessToken
 POST     /auth/logout                                       controllers.AuthController.logout
 POST     /auth/reset-password                               controllers.AuthController.resetPassword

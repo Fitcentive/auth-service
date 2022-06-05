@@ -20,7 +20,7 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient, authProviderOps
 
   override def createUser(user: User): Future[Either[errors.Error, Unit]] = {
     (for {
-      providerRealm <- EitherT(authProviderOps.providerToRealm(user.ssoProvider))
+      providerRealm <- EitherT(Future.successful(authProviderOps.providerToRealm(user.ssoProvider)))
       _ = if (!client.userExists(providerRealm, user.email))
         client.addNewUser(
           providerRealm,

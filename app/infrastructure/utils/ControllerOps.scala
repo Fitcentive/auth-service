@@ -13,7 +13,6 @@ trait ControllerOps extends Logging {
   this: AbstractController =>
 
   def resultErrorAsyncHandler: PartialFunction[Throwable, Result] = {
-
     case e: Exception =>
       logger.error(s"${e.getMessage}", e)
       InternalServerError(e.getMessage)

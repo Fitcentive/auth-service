@@ -68,11 +68,11 @@ class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: Au
         "grant_type" -> Seq("authorization_code"),
         "code" -> Seq(authCode),
         "client_id" -> Seq(clientId),
-        "client_secret" -> Seq("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"),
-        "redirect_uri" -> Seq("http://localhost:9000/auth/callback/google")
+        "redirect_uri" -> Seq(authProviderOps.getRedirectUri(provider, clientId))
       )
     (for {
-      providerRealm <- EitherT[Future, errors.Error, String](authProviderOps.providerToRealm(Some(provider)))
+      providerRealm <-
+        EitherT[Future, errors.Error, String](Future.successful(authProviderOps.providerToRealm(Some(provider))))
       result <- EitherT.right[errors.Error](
         wsClient
           .url(s"${authProviderOps.authServerHost}/realms/$providerRealm/protocol/openid-connect/token")

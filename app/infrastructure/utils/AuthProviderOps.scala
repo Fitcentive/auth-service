@@ -11,23 +11,26 @@ trait AuthProviderOps {
 
   def settingsService: SettingsService
 
-  def providerToLoginUrl(provider: String): Future[Either[errors.Error, String]] = {
+  def getRedirectUri(provider: String, clientId: String): String =
+    s"${settingsService.serverConfig.host}/auth/$provider/callback/$clientId"
+
+  def providerToLoginUrl(provider: String): Either[errors.Error, String] = {
     val serverUrl = settingsService.keycloakConfig.serverUrl
     provider match {
-      case "google" => Future.successful(Right(s"$serverUrl/${settingsService.keycloakConfig.googleOidcLoginUrl}"))
-      case _        => Future.successful(Left(UnrecognizedOidcProvider))
+      case "google" => Right(s"$serverUrl/${settingsService.keycloakConfig.googleOidcLoginUrl}")
+      case _        => Left(UnrecognizedOidcProvider)
     }
   }
 
-  def providerToRealm(providerOpt: Option[String]): Future[Either[errors.Error, String]] = {
+  def providerToRealm(providerOpt: Option[String]): Either[errors.Error, String] = {
     providerOpt match {
       case Some(provider) =>
         provider match {
-          case "google" => Future.successful(Right(settingsService.keycloakConfig.realms.google))
-          case _        => Future.successful(Left(UnrecognizedOidcProvider))
+          case "google" => Right(settingsService.keycloakConfig.realms.google)
+          case _        => Left(UnrecognizedOidcProvider)
         }
       case None =>
-        Future.successful(Right(settingsService.keycloakConfig.realms.native))
+        Right(settingsService.keycloakConfig.realms.native)
     }
   }
 

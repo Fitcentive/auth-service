@@ -7,6 +7,7 @@ sealed abstract class JwtValidationError(val reason: String) extends Error {
     JwtValidationError.code
 }
 
+// todo - validate on azp
 object JwtValidationError {
 
   val code: UUID = UUID.fromString("c9ab6043-04c9-4134-a6b1-8bf3f2c85f05")
