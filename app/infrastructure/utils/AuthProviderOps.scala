@@ -1,11 +1,10 @@
 package infrastructure.utils
 
 import services.SettingsService
-import domain.errors
 import infrastructure.utils.AuthProviderOps.UnrecognizedOidcProvider
+import io.fitcentive.sdk.error.DomainError
 
 import java.util.UUID
-import scala.concurrent.Future
 
 trait AuthProviderOps {
 
@@ -14,7 +13,7 @@ trait AuthProviderOps {
   def getRedirectUri(provider: String, clientId: String): String =
     s"${settingsService.serverConfig.host}/auth/$provider/callback/$clientId"
 
-  def providerToLoginUrl(provider: String): Either[errors.Error, String] = {
+  def providerToLoginUrl(provider: String): Either[DomainError, String] = {
     val serverUrl = settingsService.keycloakConfig.serverUrl
     provider match {
       case "google" => Right(s"$serverUrl/${settingsService.keycloakConfig.googleOidcLoginUrl}")
@@ -22,7 +21,7 @@ trait AuthProviderOps {
     }
   }
 
-  def providerToRealm(providerOpt: Option[String]): Either[errors.Error, String] = {
+  def providerToRealm(providerOpt: Option[String]): Either[DomainError, String] = {
     providerOpt match {
       case Some(provider) =>
         provider match {
@@ -42,7 +41,7 @@ trait AuthProviderOps {
 }
 
 object AuthProviderOps {
-  case object UnrecognizedOidcProvider extends domain.errors.Error {
+  case object UnrecognizedOidcProvider extends DomainError {
     override def code: UUID = UUID.fromString("e4c0512b-6c33-4cad-bec7-8ff614c1ebec")
     override def reason: String = "Unrecognized OIDC provider"
   }

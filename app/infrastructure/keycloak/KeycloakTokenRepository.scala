@@ -7,6 +7,7 @@ import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
 import services.AuthTokenRepository
 import domain.errors
+import io.fitcentive.sdk.error.DomainError
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
@@ -62,7 +63,7 @@ class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: Au
     provider: String,
     authCode: String,
     clientId: String
-  ): Future[Either[errors.Error, JsValue]] = {
+  ): Future[Either[DomainError, JsValue]] = {
     val dataParts =
       Map(
         "grant_type" -> Seq("authorization_code"),
@@ -72,8 +73,8 @@ class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: Au
       )
     (for {
       providerRealm <-
-        EitherT[Future, errors.Error, String](Future.successful(authProviderOps.providerToRealm(Some(provider))))
-      result <- EitherT.right[errors.Error](
+        EitherT[Future, DomainError, String](Future.successful(authProviderOps.providerToRealm(Some(provider))))
+      result <- EitherT.right[DomainError](
         wsClient
           .url(s"${authProviderOps.authServerHost}/realms/$providerRealm/protocol/openid-connect/token")
           .withHttpHeaders(("Content-Type" -> "application/x-www-form-urlencoded"), ("Accept" -> "application/json"))

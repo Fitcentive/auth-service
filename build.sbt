@@ -2,7 +2,9 @@ name := "auth"
 
 version := "1.0"
 
-lazy val `auth` = (project in file(".")).enablePlugins(PlayScala)
+lazy val `auth` = (project in file("."))
+  .enablePlugins(PlayScala)
+  .disablePlugins(PlayLogback)
 
 resolvers += "Akka Snapshot Repository" at "https://repo.akka.io/snapshots/"
 
@@ -25,7 +27,12 @@ libraryDependencies ++= Seq(
   //Cats
   "org.typelevel" %% "cats-core"   % "2.7.0",
   "org.typelevel" %% "cats-effect" % "3.3.4",
-  specs2           % Test,
+  // App sdk
+  "io.fitcentive" %% "app-sdk" % "1.0.0",
+  //Logging
+  "ch.qos.logback"       % "logback-classic"          % "1.3.0-alpha10",
+  "net.logstash.logback" % "logstash-logback-encoder" % "7.0.1",
+  specs2                 % Test,
   guice
 )
 

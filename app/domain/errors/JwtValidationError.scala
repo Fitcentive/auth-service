@@ -1,8 +1,10 @@
 package domain.errors
 
+import io.fitcentive.sdk.error.DomainError
+
 import java.util.UUID
 
-sealed abstract class JwtValidationError(val reason: String) extends Error {
+sealed abstract class JwtValidationError(val reason: String) extends DomainError {
   override def code: UUID =
     JwtValidationError.code
 }

@@ -7,25 +7,26 @@ import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Request, Result}
 import services.{AuthAdminRepository, AuthTokenRepository}
-import domain.errors
+import io.fitcentive.sdk.error.DomainError
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class AuthApi @Inject() (
   authAdminRepo: AuthAdminRepository,
   authTokenRepository: AuthTokenRepository,
   authProviderOps: AuthProviderOps,
 )(implicit ec: ExecutionContext) {
 
-  def createNewUser(user: User): Future[Either[errors.Error, Unit]] = authAdminRepo.createUser(user)
+  def createNewUser(user: User): Future[Either[DomainError, Unit]] = authAdminRepo.createUser(user)
 
   def resetPassword(userName: String, password: String): Future[Unit] = authAdminRepo.resetPassword(userName, password)
 
-  def oidcLoginWithRedirect(provider: String, rawRequest: Request[AnyContent]): Future[Either[errors.Error, Result]] = {
+  def oidcLoginWithRedirect(provider: String, rawRequest: Request[AnyContent]): Future[Either[DomainError, Result]] = {
     (for {
-      loginUrl <- EitherT[Future, errors.Error, String](Future.successful(authProviderOps.providerToLoginUrl(provider)))
-      result <- EitherT.right[errors.Error](Future.successful(Redirect(loginUrl, rawRequest.queryString)))
+      loginUrl <- EitherT[Future, DomainError, String](Future.successful(authProviderOps.providerToLoginUrl(provider)))
+      result <- EitherT.right[DomainError](Future.successful(Redirect(loginUrl, rawRequest.queryString)))
     } yield result).value
   }
 
@@ -36,7 +37,7 @@ class AuthApi @Inject() (
     provider: String,
     authCode: String,
     clientId: String
-  ): Future[Either[errors.Error, JsValue]] =
+  ): Future[Either[DomainError, JsValue]] =
     authTokenRepository.getTokenWithAuthCode(provider, authCode, clientId)
 
   def refreshAccessToken(realm: String, clientId: String, grantType: String, refreshToken: String): Future[JsValue] =

@@ -3,7 +3,7 @@ package infrastructure.actions
 import domain.{AuthorizedUser, UserRequest}
 import play.api.http.HeaderNames
 import play.api.mvc.{ActionBuilder, AnyContent, BodyParser, BodyParsers, Request, Result, Results, WrappedRequest}
-import services.{SettingsService, TokenValidationService}
+import services.TokenValidationService
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}

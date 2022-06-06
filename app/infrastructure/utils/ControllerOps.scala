@@ -1,25 +1,25 @@
 package infrastructure.utils
 
-import play.api.Logging
 import play.api.mvc.{AbstractController, Result}
-import domain.errors
 import infrastructure.utils.AuthProviderOps.UnrecognizedOidcProvider
+import io.fitcentive.sdk.error.DomainError
+import io.fitcentive.sdk.logging.AppLogger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Reads}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait ControllerOps extends Logging {
+trait ControllerOps extends AppLogger {
 
   this: AbstractController =>
 
   def resultErrorAsyncHandler: PartialFunction[Throwable, Result] = {
     case e: Exception =>
-      logger.error(s"${e.getMessage}", e)
+      logError(s"${e.getMessage}", e)
       InternalServerError(e.getMessage)
   }
 
   def handleEitherResult[A](
-    result: Either[errors.Error, A]
+    result: Either[DomainError, A]
   )(ifSuccess: A => Result)(implicit ec: ExecutionContext): Result = {
     result match {
       case Left(error)  => domainErrorHandler(error)
@@ -27,7 +27,7 @@ trait ControllerOps extends Logging {
     }
   }
 
-  private def domainErrorHandler: PartialFunction[errors.Error, Result] = {
+  private def domainErrorHandler: PartialFunction[DomainError, Result] = {
     case UnrecognizedOidcProvider => BadRequest(UnrecognizedOidcProvider.reason)
   }
 

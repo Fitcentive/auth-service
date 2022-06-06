@@ -3,7 +3,7 @@ package infrastructure.jwt
 import domain.config.JwtConfig
 import domain.errors.JwtValidationError._
 import domain.errors.JwtValidationError
-import io.circe.{Decoder, DecodingFailure, ParsingFailure}
+import io.circe.Decoder
 import io.circe.parser.parse
 import pdi.jwt.{JwtCirce, JwtClaim, JwtHeader, JwtOptions}
 import pdi.jwt.exceptions._
@@ -50,6 +50,19 @@ class JwtTokenValidationService @Inject() (settingsService: SettingsService, pub
   private def verifySignature(token: String, publicKey: PublicKey): Either[JwtValidationError, JwtClaim] =
     JwtCirce.decode(token, publicKey, SignatureOnly).toEither.left.map { e => BadToken(token, e.getMessage) }
 
+  private def validateJwtClaim(jwtClaim: JwtClaim, token: String)(
+    subject: Option[String] = Option.empty,
+    audience: Option[Set[String]] = Option.empty
+  )(implicit config: JwtConfig): Either[JwtValidationError, JwtClaim] = {
+    val isValid =
+      jwtClaim.issuer.fold(false)(_.startsWith(config.issuer)) &&
+        subject.fold(true)(sub => jwtClaim.subject.fold(false)(_ == sub)) &&
+        audience.fold(true)(aud => jwtClaim.audience.fold(false)(_ == aud))
+
+    if (isValid) Right(jwtClaim)
+    else Left(BadToken(token, "Invalid issuer, subject, or audience."))
+  }
+
   def validateJwt[T](
     token: String,
     subject: Option[String] = Option.empty,
@@ -67,16 +80,4 @@ class JwtTokenValidationService @Inject() (settingsService: SettingsService, pub
     } yield result
   }
 
-  private def validateJwtClaim(jwtClaim: JwtClaim, token: String)(
-    subject: Option[String] = Option.empty,
-    audience: Option[Set[String]] = Option.empty
-  )(implicit config: JwtConfig): Either[JwtValidationError, JwtClaim] = {
-    val isValid =
-      jwtClaim.issuer.fold(false)(_.startsWith(config.issuer)) &&
-        subject.fold(true)(sub => jwtClaim.subject.fold(false)(_ == sub)) &&
-        audience.fold(true)(aud => jwtClaim.audience.fold(false)(_ == aud))
-
-    if (isValid) Right(jwtClaim)
-    else Left(BadToken(token, "Invalid issuer, subject, or audience."))
-  }
 }

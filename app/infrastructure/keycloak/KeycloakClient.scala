@@ -5,8 +5,8 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.keycloak.representations.idm.{CredentialRepresentation, UserRepresentation}
 import org.passay.{CharacterRule, EnglishCharacterData, PasswordGenerator}
-import domain.errors
-import play.api.Logging
+import io.fitcentive.sdk.error.DomainError
+import io.fitcentive.sdk.logging.AppLogger
 
 import java.security.SecureRandom
 import java.time.Instant
@@ -17,7 +17,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Random
 import scala.util.chaining.scalaUtilChainingOps
 
-class KeycloakClient(keycloak: Keycloak) extends Logging {
+class KeycloakClient(keycloak: Keycloak) extends AppLogger {
 
   import KeycloakClient._
 
@@ -54,13 +54,13 @@ class KeycloakClient(keycloak: Keycloak) extends Logging {
     users.create(rep)
   }
 
-  def resetPassword(realm: String, username: String, password: String): Either[errors.Error, Unit] = {
+  def resetPassword(realm: String, username: String, password: String): Either[DomainError, Unit] = {
     val users = keycloak.realm(realm).users()
     val userOpt = users.search(username).asScala.find(_.getUsername == username)
 
     userOpt match {
       case None =>
-        logger.error(s"[KEYCLOAK] resetPassword Could not find user with username $username on realm $realm")
+        logError(s"[KEYCLOAK] resetPassword Could not find user with username $username on realm $realm")
         Left(KeycloakUserNotFound)
       case Some(user) =>
         val credentials = new CredentialRepresentation
@@ -82,7 +82,7 @@ class KeycloakClient(keycloak: Keycloak) extends Logging {
 
 object KeycloakClient {
 
-  case object KeycloakUserNotFound extends domain.errors.Error {
+  case object KeycloakUserNotFound extends DomainError {
     override def code: UUID = UUID.fromString("8d2569ef-a4ff-43e5-aa71-02e9527076bf")
     override def reason: String = "Keycloak user not found"
   }

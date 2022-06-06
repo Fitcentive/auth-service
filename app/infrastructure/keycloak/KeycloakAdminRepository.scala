@@ -4,21 +4,18 @@ import cats.data.EitherT
 import domain.User
 import infrastructure.contexts.KeycloakClientExecutionContext
 import infrastructure.utils.AuthProviderOps
-import play.api.Logger
 import services.AuthAdminRepository
-import domain.errors
+import io.fitcentive.sdk.error.DomainError
 
 import javax.inject._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 @Singleton
 class KeycloakAdminRepository @Inject() (client: KeycloakClient, authProviderOps: AuthProviderOps)(implicit
   ec: KeycloakClientExecutionContext
 ) extends AuthAdminRepository {
 
-  private val logger: Logger = Logger(this.getClass)
-
-  override def createUser(user: User): Future[Either[errors.Error, Unit]] = {
+  override def createUser(user: User): Future[Either[DomainError, Unit]] = {
     (for {
       providerRealm <- EitherT(Future.successful(authProviderOps.providerToRealm(user.ssoProvider)))
       _ = if (!client.userExists(providerRealm, user.email))
