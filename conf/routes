@@ -3,14 +3,14 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET      /health                                            controllers.HealthController.healthCheck
-POST     /auth/login                                        controllers.AuthController.login
-GET      /auth/login/:provider                              controllers.AuthController.ssoLogin(provider: String)
-GET      /auth/:provider/callback/:clientId                 controllers.AuthController.oidcCallback(provider: String, clientId: String, code: String)
-POST     /auth/refresh                                      controllers.AuthController.refreshAccessToken
-POST     /auth/logout                                       controllers.AuthController.logout
-POST     /auth/reset-password                               controllers.AuthController.resetPassword
-POST     /auth/create-user                                  controllers.AuthController.createNewUser
+GET      /health                                            io.fitcentive.auth.controllers.HealthController.healthCheck
+POST     /auth/login                                        io.fitcentive.auth.controllers.AuthController.login
+GET      /auth/login/:provider                              io.fitcentive.auth.controllers.AuthController.ssoLogin(provider: String)
+GET      /auth/:provider/callback/:clientId                 io.fitcentive.auth.controllers.AuthController.oidcCallback(provider: String, clientId: String, code: String)
+POST     /auth/refresh                                      io.fitcentive.auth.controllers.AuthController.refreshAccessToken
+POST     /auth/logout                                       io.fitcentive.auth.controllers.AuthController.logout
+POST     /auth/reset-password                               io.fitcentive.auth.controllers.AuthController.resetPassword
+POST     /auth/create-user                                  io.fitcentive.auth.controllers.AuthController.createNewUser
 
-GET      /auth/check-token                                  controllers.AuthController.validateToken
+GET      /auth/check-token                                  io.fitcentive.auth.controllers.AuthController.validateToken
 
