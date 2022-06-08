@@ -1,8 +1,9 @@
 package io.fitcentive.auth.infrastructure.keycloak
 
 import io.circe.Json
+import io.fitcentive.auth.repositories.PublicKeyRepository
 import org.keycloak.adapters.KeycloakDeploymentBuilder
-import io.fitcentive.auth.services.{PublicKeyRepository, SettingsService}
+import io.fitcentive.auth.services.SettingsService
 
 import java.io.ByteArrayInputStream
 import java.security.PublicKey

@@ -3,7 +3,7 @@ package io.fitcentive.auth.api
 import cats.data.EitherT
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
 import io.fitcentive.auth.domain.User
-import io.fitcentive.auth.services.{AuthAdminRepository, AuthTokenRepository}
+import io.fitcentive.auth.repositories.{AuthAdminRepository, AuthTokenRepository}
 import io.fitcentive.sdk.error.DomainError
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect

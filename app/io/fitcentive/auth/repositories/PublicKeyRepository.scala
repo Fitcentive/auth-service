@@ -1,4 +1,4 @@
-package io.fitcentive.auth.services
+package io.fitcentive.auth.repositories
 
 import com.google.inject.ImplementedBy
 import io.fitcentive.auth.infrastructure.keycloak.KeycloakPublicKeyRepository

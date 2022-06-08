@@ -1,8 +1,8 @@
-package io.fitcentive.auth.services
+package io.fitcentive.auth.repositories
 
 import com.google.inject.ImplementedBy
-import io.fitcentive.auth.infrastructure.keycloak.KeycloakAdminRepository
 import io.fitcentive.auth.domain.User
+import io.fitcentive.auth.infrastructure.keycloak.KeycloakAdminRepository
 import io.fitcentive.sdk.error.DomainError
 
 import scala.concurrent.Future

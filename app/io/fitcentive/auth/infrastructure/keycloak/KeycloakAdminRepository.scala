@@ -4,7 +4,7 @@ import cats.data.EitherT
 import io.fitcentive.auth.infrastructure.contexts.KeycloakClientExecutionContext
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
 import io.fitcentive.auth.domain.User
-import io.fitcentive.auth.services.AuthAdminRepository
+import io.fitcentive.auth.repositories.AuthAdminRepository
 import io.fitcentive.sdk.error.DomainError
 
 import javax.inject._

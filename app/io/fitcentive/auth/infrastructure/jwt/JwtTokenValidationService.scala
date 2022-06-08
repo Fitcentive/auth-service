@@ -5,9 +5,10 @@ import io.fitcentive.auth.domain.errors.JwtValidationError._
 import io.fitcentive.auth.domain.errors.JwtValidationError
 import io.circe.Decoder
 import io.circe.parser.parse
+import io.fitcentive.auth.repositories.PublicKeyRepository
 import pdi.jwt.{JwtCirce, JwtClaim, JwtHeader, JwtOptions}
 import pdi.jwt.exceptions._
-import io.fitcentive.auth.services.{PublicKeyRepository, SettingsService, TokenValidationService}
+import io.fitcentive.auth.services.{SettingsService, TokenValidationService}
 
 import java.security.PublicKey
 import javax.inject.{Inject, Singleton}
