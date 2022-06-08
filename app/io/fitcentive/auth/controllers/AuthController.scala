@@ -1,9 +1,10 @@
 package io.fitcentive.auth.controllers
 
 import io.fitcentive.auth.infrastructure.actions.AuthAction
-import io.fitcentive.auth.infrastructure.utils.ControllerOps
+import io.fitcentive.auth.infrastructure.utils.ServerErrorHandler
 import io.fitcentive.auth.api.AuthApi
 import io.fitcentive.auth.domain.{PasswordReset, User}
+import io.fitcentive.sdk.utils.PlayControllerOps
 import play.api.mvc._
 
 import javax.inject._
@@ -13,7 +14,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, authAction: AuthAction)(implicit
   exec: ExecutionContext
 ) extends AbstractController(cc)
-  with ControllerOps {
+  with PlayControllerOps
+  with ServerErrorHandler {
 
   def validateToken: Action[AnyContent] =
     authAction.async { implicit userRequest =>
@@ -22,17 +24,17 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
 
   def createNewUser: Action[AnyContent] =
     Action.async { implicit request =>
-      validateJson[User](request.body.asJson.get) { user =>
+      validateJson[User](request.body.asJson) { user =>
         authApi
           .createNewUser(user)
-          .map(handleEitherResult(_)(_ => Ok("Successful")))
+          .map(handleEitherResult(_)(_ => Created("User created successfully")))
           .recover(resultErrorAsyncHandler)
       }
     }
 
   def resetPassword: Action[AnyContent] =
     Action.async { implicit request =>
-      validateJson[PasswordReset](request.body.asJson.get) { parameters =>
+      validateJson[PasswordReset](request.body.asJson) { parameters =>
         authApi
           .resetPassword(parameters.username, parameters.password)
           .map(_ => Ok("Successful"))
@@ -40,7 +42,6 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
       }
     }
 
-  // todo - add mailhog next
   def logout: Action[AnyContent] =
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
