@@ -36,7 +36,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
     Action.async { implicit request =>
       validateJson[PasswordReset](request.body.asJson) { parameters =>
         authApi
-          .resetPassword(parameters.username, parameters.password)
+          .resetPassword(parameters.email, parameters.password)
           .map(_ => Ok("Successful"))
           .recover(resultErrorAsyncHandler)
       }

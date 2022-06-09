@@ -31,8 +31,8 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient, authProviderOps
     } yield ()).value
   }
 
-  override def resetPassword(username: String, password: String): Future[Unit] =
+  override def resetPassword(email: String, password: String): Future[Unit] =
     Future {
-      client.resetPassword(authProviderOps.nativeAuthProviderRealm, username, password)
+      client.resetPassword(authProviderOps.nativeAuthProviderRealm, email, password)
     }
 }

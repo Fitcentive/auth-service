@@ -21,7 +21,7 @@ class AuthApi @Inject() (
 
   def createNewUser(user: User): Future[Either[DomainError, Unit]] = authAdminRepo.createUser(user)
 
-  def resetPassword(userName: String, password: String): Future[Unit] = authAdminRepo.resetPassword(userName, password)
+  def resetPassword(email: String, password: String): Future[Unit] = authAdminRepo.resetPassword(email, password)
 
   def oidcLoginWithRedirect(provider: String, rawRequest: Request[AnyContent]): Future[Either[DomainError, Result]] = {
     (for {
