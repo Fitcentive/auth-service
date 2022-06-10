@@ -1,10 +1,20 @@
 package io.fitcentive.auth.domain
 
-import play.api.libs.json._
+import play.api.libs.json.{Json, Reads, Writes}
 
+import java.time.Instant
 import java.util.UUID
 
-case class User(userId: UUID, email: String, firstName: String, lastName: String, ssoProvider: Option[String])
+case class User(
+  id: UUID,
+  email: String,
+  username: Option[String],
+  accountStatus: String,
+  authProvider: String,
+  enabled: Boolean,
+  createdAt: Instant,
+  updatedAt: Instant
+)
 
 object User {
   implicit lazy val reads: Reads[User] = Json.reads[User]

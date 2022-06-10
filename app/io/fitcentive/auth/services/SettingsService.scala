@@ -12,4 +12,5 @@ trait SettingsService {
   def keycloakConfigRaw: Config
   def jwtConfig: JwtConfig
   def serverConfig: ServerConfig
+  def userServiceConfig: ServerConfig
 }

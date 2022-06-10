@@ -3,7 +3,7 @@ package io.fitcentive.auth.controllers
 import io.fitcentive.auth.infrastructure.actions.AuthAction
 import io.fitcentive.auth.infrastructure.utils.ServerErrorHandler
 import io.fitcentive.auth.api.AuthApi
-import io.fitcentive.auth.domain.{PasswordReset, User}
+import io.fitcentive.auth.domain.{BasicAuthKeycloakUser, PasswordReset}
 import io.fitcentive.sdk.utils.PlayControllerOps
 import play.api.mvc._
 
@@ -24,10 +24,10 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
 
   def createNewUser: Action[AnyContent] =
     Action.async { implicit request =>
-      validateJson[User](request.body.asJson) { user =>
+      validateJson[BasicAuthKeycloakUser](request.body.asJson) { user =>
         authApi
-          .createNewUser(user)
-          .map(handleEitherResult(_)(_ => Created("User created successfully")))
+          .createNewKeycloakUser(user)
+          .map(_ => Created("User created successfully"))
           .recover(resultErrorAsyncHandler)
       }
     }
@@ -70,7 +70,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
   def oidcCallback(provider: String, clientId: String, code: String): Action[AnyContent] =
     Action.async { implicit request =>
       authApi
-        .generateTokenFromAuthCode(provider, code, clientId)
+        .generateAccessTokenAndCreateUserIfNeeded(provider, code, clientId)
         .map(handleEitherResult(_)(token => Ok(token)))
         .recover(resultErrorAsyncHandler)
     }
@@ -90,7 +90,7 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, auth
           .refreshAccessToken(
             formData.dataParts("realm").head,
             formData.dataParts("client_id").head,
-            formData.dataParts("grant_type").head,
+            formData.dataParts("grant_type").head, // todo - this can be hardcoded
             formData.dataParts("refresh_token").head,
           )
           .map(Ok(_))

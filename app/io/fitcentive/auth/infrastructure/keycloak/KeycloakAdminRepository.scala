@@ -1,12 +1,11 @@
 package io.fitcentive.auth.infrastructure.keycloak
 
-import cats.data.EitherT
 import io.fitcentive.auth.infrastructure.contexts.KeycloakClientExecutionContext
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
-import io.fitcentive.auth.domain.User
+import io.fitcentive.auth.domain.BasicAuthKeycloakUser
 import io.fitcentive.auth.repositories.AuthAdminRepository
-import io.fitcentive.sdk.error.DomainError
 
+import java.util.UUID
 import javax.inject._
 import scala.concurrent.Future
 
@@ -15,24 +14,21 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient, authProviderOps
   ec: KeycloakClientExecutionContext
 ) extends AuthAdminRepository {
 
-  override def createUser(user: User): Future[Either[DomainError, Unit]] = {
-    (for {
-      providerRealm <- EitherT(Future.successful(authProviderOps.providerToRealm(user.ssoProvider)))
+  override def createUserWithBasicAuth(user: BasicAuthKeycloakUser): Future[Unit] =
+    for {
+      providerRealm <- Future.successful(authProviderOps.nativeAuthProviderRealm)
       _ = if (!client.userExists(providerRealm, user.email))
-        client.addNewUser(
-          providerRealm,
-          user.userId,
-          user.email,
-          user.firstName,
-          user.lastName,
-          ssoEnabled = user.ssoProvider.fold(false)(_ => true)
-        )
+        client.addNewUser(providerRealm, user.userId, user.email, user.firstName, user.lastName)
       else ()
-    } yield ()).value
-  }
+    } yield ()
 
   override def resetPassword(email: String, password: String): Future[Unit] =
     Future {
       client.resetPassword(authProviderOps.nativeAuthProviderRealm, email, password)
+    }
+
+  override def addUserIdToSsoKeycloakUser(authProviderRealm: String, email: String, userId: UUID): Future[Unit] =
+    Future {
+      client.updateUser(authProviderRealm, email, userId)
     }
 }

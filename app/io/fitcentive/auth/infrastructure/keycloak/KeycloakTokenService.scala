@@ -5,17 +5,16 @@ import io.fitcentive.auth.infrastructure.contexts.KeycloakServerExecutionContext
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
 import play.api.libs.json.JsValue
 import play.api.libs.ws.WSClient
-import io.fitcentive.auth.domain.errors
-import io.fitcentive.auth.repositories.AuthTokenRepository
+import io.fitcentive.auth.services.AuthTokenService
 import io.fitcentive.sdk.error.DomainError
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton
-class KeycloakTokenRepository @Inject() (wsClient: WSClient, authProviderOps: AuthProviderOps)(implicit
+class KeycloakTokenService @Inject() (wsClient: WSClient, authProviderOps: AuthProviderOps)(implicit
   ec: KeycloakServerExecutionContext
-) extends AuthTokenRepository {
+) extends AuthTokenService {
 
   override def refreshAccessToken(
     realm: String,

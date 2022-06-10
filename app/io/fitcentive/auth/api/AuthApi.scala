@@ -1,9 +1,12 @@
 package io.fitcentive.auth.api
 
 import cats.data.EitherT
+import io.fitcentive.auth.api.AuthApi.refreshTokenGrantType
+import io.fitcentive.auth.domain.errors.OidcTokenValidationError
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
-import io.fitcentive.auth.domain.User
-import io.fitcentive.auth.repositories.{AuthAdminRepository, AuthTokenRepository}
+import io.fitcentive.auth.domain.{AuthorizedUserWithoutId, BasicAuthKeycloakUser, OidcTokenResponse}
+import io.fitcentive.auth.repositories.AuthAdminRepository
+import io.fitcentive.auth.services.{AuthTokenService, TokenValidationService, UserService}
 import io.fitcentive.sdk.error.DomainError
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect
@@ -11,15 +14,20 @@ import play.api.mvc.{AnyContent, Request, Result}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
+import scala.util.chaining.scalaUtilChainingOps
 
 @Singleton
 class AuthApi @Inject() (
   authAdminRepo: AuthAdminRepository,
-  authTokenRepository: AuthTokenRepository,
+  authTokenRepository: AuthTokenService,
   authProviderOps: AuthProviderOps,
+  tokenValidationService: TokenValidationService,
+  userService: UserService,
 )(implicit ec: ExecutionContext) {
 
-  def createNewUser(user: User): Future[Either[DomainError, Unit]] = authAdminRepo.createUser(user)
+  def createNewKeycloakUser(user: BasicAuthKeycloakUser): Future[Unit] =
+    authAdminRepo.createUserWithBasicAuth(user)
 
   def resetPassword(email: String, password: String): Future[Unit] = authAdminRepo.resetPassword(email, password)
 
@@ -33,12 +41,45 @@ class AuthApi @Inject() (
   def generateTokenFromCredentials(userName: String, password: String, clientId: String): Future[JsValue] =
     authTokenRepository.getTokenWithCredentials(userName, password, clientId)
 
-  def generateTokenFromAuthCode(
+  def generateAccessTokenAndCreateUserIfNeeded(
     provider: String,
     authCode: String,
     clientId: String
-  ): Future[Either[DomainError, JsValue]] =
-    authTokenRepository.getTokenWithAuthCode(provider, authCode, clientId)
+  ): Future[Either[DomainError, JsValue]] = {
+    (for {
+      authTokens <-
+        EitherT[Future, DomainError, JsValue](authTokenRepository.getTokenWithAuthCode(provider, authCode, clientId))
+      parsedTokens <- EitherT[Future, DomainError, OidcTokenResponse](
+        Future
+          .fromTry(Try(authTokens.as[OidcTokenResponse]))
+          .map(Right.apply)
+          .recover(ex => Left(OidcTokenValidationError(ex.getMessage)))
+      )
+      authorizedUser <- EitherT[Future, DomainError, AuthorizedUserWithoutId](
+        tokenValidationService.validateJwt[AuthorizedUserWithoutId](parsedTokens.access_token).pipe(Future.successful)
+      )
+      userOpt <- EitherT.right[DomainError](userService.getUserByEmail(authorizedUser.email))
+      providerRealm <- EitherT(Future.successful(authProviderOps.providerToRealm(Some(provider))))
+      result <- EitherT.right[DomainError] {
+        if (userOpt.isDefined) Future.successful(authTokens)
+        else createNewAppUserAndRefreshTokens(authorizedUser, providerRealm, clientId, parsedTokens.refresh_token)
+      }
+    } yield result).value
+  }
+
+  private def createNewAppUserAndRefreshTokens(
+    user: AuthorizedUserWithoutId,
+    ssoProviderRealm: String,
+    clientId: String,
+    refreshToken: String
+  ): Future[JsValue] = {
+    for {
+      newAppUser <- userService.createSsoUser(user.email, ssoProviderRealm)
+      _ <- authAdminRepo.addUserIdToSsoKeycloakUser(ssoProviderRealm, user.email, newAppUser.id)
+      newToken <-
+        authTokenRepository.refreshAccessToken(ssoProviderRealm, clientId, refreshTokenGrantType, refreshToken)
+    } yield newToken
+  }
 
   def refreshAccessToken(realm: String, clientId: String, grantType: String, refreshToken: String): Future[JsValue] =
     authTokenRepository.refreshAccessToken(realm, clientId, grantType, refreshToken)
@@ -46,4 +87,8 @@ class AuthApi @Inject() (
   def logout(clientId: String, refreshToken: String): Future[Unit] =
     authTokenRepository.logout(clientId, refreshToken)
 
+}
+
+object AuthApi {
+  val refreshTokenGrantType: String = "refresh_token"
 }

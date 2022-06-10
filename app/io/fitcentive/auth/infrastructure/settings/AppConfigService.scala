@@ -11,6 +11,8 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class AppConfigService @Inject() (config: Configuration) extends SettingsService {
 
+  override def userServiceConfig: ServerConfig = ServerConfig.fromConfig(config.get[Config]("services.user-service"))
+
   override def serverConfig: ServerConfig = ServerConfig.fromConfig(config.get[Config]("http-server"))
 
   override def keycloakConfigRaw: Config = config.get[Config]("keycloak")

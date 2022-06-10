@@ -1,14 +1,15 @@
 package io.fitcentive.auth.repositories
 
 import com.google.inject.ImplementedBy
-import io.fitcentive.auth.domain.User
+import io.fitcentive.auth.domain.BasicAuthKeycloakUser
 import io.fitcentive.auth.infrastructure.keycloak.KeycloakAdminRepository
-import io.fitcentive.sdk.error.DomainError
 
+import java.util.UUID
 import scala.concurrent.Future
 
 @ImplementedBy(classOf[KeycloakAdminRepository])
 trait AuthAdminRepository {
-  def createUser(user: User): Future[Either[DomainError, Unit]]
+  def createUserWithBasicAuth(user: BasicAuthKeycloakUser): Future[Unit]
   def resetPassword(email: String, password: String): Future[Unit]
+  def addUserIdToSsoKeycloakUser(authProviderRealm: String, email: String, userId: UUID): Future[Unit]
 }

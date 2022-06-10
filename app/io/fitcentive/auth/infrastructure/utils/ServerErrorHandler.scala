@@ -1,7 +1,7 @@
 package io.fitcentive.auth.infrastructure.utils
 
+import io.fitcentive.auth.domain.errors.UnrecognizedOidcProviderError
 import play.api.mvc.Result
-import io.fitcentive.auth.infrastructure.utils.AuthProviderOps.UnrecognizedOidcProvider
 import io.fitcentive.sdk.error.DomainError
 import io.fitcentive.sdk.logging.AppLogger
 import io.fitcentive.sdk.utils.DomainErrorHandler
@@ -16,7 +16,7 @@ trait ServerErrorHandler extends DomainErrorHandler with AppLogger {
   }
 
   override def domainErrorHandler: PartialFunction[DomainError, Result] = {
-    case UnrecognizedOidcProvider => BadRequest(UnrecognizedOidcProvider.reason)
+    case UnrecognizedOidcProviderError(reason) => BadRequest(reason)
   }
 
 }
