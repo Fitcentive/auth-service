@@ -3,7 +3,7 @@ package io.fitcentive.auth.controllers
 import io.fitcentive.auth.infrastructure.utils.ServerErrorHandler
 import io.fitcentive.auth.api.AuthApi
 import io.fitcentive.auth.domain.{BasicAuthKeycloakUser, PasswordReset}
-import io.fitcentive.sdk.play.UserAuthAction
+import io.fitcentive.sdk.play.{InternalAuthAction, UserAuthAction}
 import io.fitcentive.sdk.utils.PlayControllerOps
 import play.api.mvc._
 
@@ -11,9 +11,13 @@ import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, userAuthAction: UserAuthAction)(implicit
-  exec: ExecutionContext
-) extends AbstractController(cc)
+class AuthController @Inject() (
+  authApi: AuthApi,
+  cc: ControllerComponents,
+  userAuthAction: UserAuthAction,
+  internalAuthAction: InternalAuthAction
+)(implicit exec: ExecutionContext)
+  extends AbstractController(cc)
   with PlayControllerOps
   with ServerErrorHandler {
 
@@ -22,8 +26,9 @@ class AuthController @Inject() (authApi: AuthApi, cc: ControllerComponents, user
       Future.successful(Ok("Success"))
     }
 
+  // todo - this is just an example, this action might not necessarily make sense here
   def createNewUser: Action[AnyContent] =
-    Action.async { implicit request =>
+    internalAuthAction.async { implicit request =>
       validateJson[BasicAuthKeycloakUser](request.body.asJson) { user =>
         authApi
           .createNewKeycloakUser(user)

@@ -4,12 +4,14 @@ import com.typesafe.config.Config
 import io.fitcentive.auth.domain.config.KeycloakConfig
 import play.api.Configuration
 import io.fitcentive.auth.services.SettingsService
-import io.fitcentive.sdk.config.{JwtConfig, ServerConfig}
+import io.fitcentive.sdk.config.{JwtConfig, SecretConfig, ServerConfig}
 
 import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AppConfigService @Inject() (config: Configuration) extends SettingsService {
+
+  override def secretConfig: SecretConfig = SecretConfig.fromConfig(config.get[Config]("services"))
 
   override def userServiceConfig: ServerConfig = ServerConfig.fromConfig(config.get[Config]("services.user-service"))
 
