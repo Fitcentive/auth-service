@@ -1,10 +1,10 @@
 package io.fitcentive.auth.infrastructure.settings
 
 import com.typesafe.config.Config
-import io.fitcentive.auth.domain.config.{JwtConfig, KeycloakConfig}
+import io.fitcentive.auth.domain.config.KeycloakConfig
 import play.api.Configuration
 import io.fitcentive.auth.services.SettingsService
-import io.fitcentive.sdk.config.ServerConfig
+import io.fitcentive.sdk.config.{JwtConfig, ServerConfig}
 
 import javax.inject.{Inject, Singleton}
 

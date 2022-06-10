@@ -6,7 +6,8 @@ import io.fitcentive.auth.domain.errors.OidcTokenValidationError
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
 import io.fitcentive.auth.domain.{AuthorizedUserWithoutId, BasicAuthKeycloakUser, OidcTokenResponse}
 import io.fitcentive.auth.repositories.AuthAdminRepository
-import io.fitcentive.auth.services.{AuthTokenService, TokenValidationService, UserService}
+import io.fitcentive.auth.services.{AuthTokenService, UserService}
+import io.fitcentive.sdk.domain.TokenValidationService
 import io.fitcentive.sdk.error.DomainError
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect

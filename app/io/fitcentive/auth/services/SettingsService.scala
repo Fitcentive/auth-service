@@ -2,9 +2,9 @@ package io.fitcentive.auth.services
 
 import com.google.inject.ImplementedBy
 import com.typesafe.config.Config
-import io.fitcentive.auth.domain.config.{JwtConfig, KeycloakConfig}
+import io.fitcentive.auth.domain.config.KeycloakConfig
 import io.fitcentive.auth.infrastructure.settings.AppConfigService
-import io.fitcentive.sdk.config.ServerConfig
+import io.fitcentive.sdk.config.{JwtConfig, ServerConfig}
 
 @ImplementedBy(classOf[AppConfigService])
 trait SettingsService {
