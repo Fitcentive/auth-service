@@ -4,11 +4,13 @@
 # ~~~~
 
 GET      /health                                                io.fitcentive.auth.controllers.HealthController.healthCheck
+
 POST     /api/auth/login                                        io.fitcentive.auth.controllers.AuthController.login
 GET      /api/auth/login/:provider                              io.fitcentive.auth.controllers.AuthController.ssoLogin(provider: String)
 GET      /api/auth/:provider/callback/:clientId                 io.fitcentive.auth.controllers.AuthController.oidcCallback(provider: String, clientId: String, code: String)
 POST     /api/auth/refresh                                      io.fitcentive.auth.controllers.AuthController.refreshAccessToken
 POST     /api/auth/logout                                       io.fitcentive.auth.controllers.AuthController.logout
-POST     /api/auth/user/reset-password                          io.fitcentive.auth.controllers.AuthController.resetPassword
-POST     /api/auth/user                                         io.fitcentive.auth.controllers.AuthController.createNewUser
+
+POST     /api/internal/auth/user/reset-password                 io.fitcentive.auth.controllers.AuthController.resetPassword
+POST     /api/internal/auth/user                                io.fitcentive.auth.controllers.AuthController.createNewUser
 

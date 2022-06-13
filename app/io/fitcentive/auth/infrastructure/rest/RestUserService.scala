@@ -7,7 +7,7 @@ import io.fitcentive.auth.services.{SettingsService, UserService}
 import io.fitcentive.sdk.config.ServerConfig
 import play.api.http.Status
 import play.api.libs.json.{Json, Writes}
-import play.api.libs.ws.WSClient
+import play.api.libs.ws.{WSClient, WSRequest}
 
 import javax.inject.Inject
 import scala.concurrent.Future
@@ -17,21 +17,24 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
   ec: KeycloakServerExecutionContext
 ) extends UserService {
 
-  private val serverConfig: ServerConfig = settingsService.userServiceConfig
+  private val userServiceConfig: ServerConfig = settingsService.userServiceConfig
+  val baseUrl: String = userServiceConfig.serverUrl
 
   override def createSsoUser(email: String, ssoProvider: String): Future[User] =
     wsClient
-      .url(s"${serverConfig.serverUrl}/api/sso-user")
+      .url(s"$baseUrl/api/internal/user/sso")
       .withQueryStringParameters("email" -> email)
-      .withHttpHeaders("Accept" -> "application/json")
+      .addHttpHeaders("Accept" -> "application/json")
+      .addServiceSecret
       .post(Json.toJson(CreateNewAppUserPayload(email, ssoProvider)))
       .map(_.json.as[User])
 
   override def getUserByEmail(email: String): Future[Option[User]] =
     wsClient
-      .url(s"${serverConfig.serverUrl}/api/user-by-email")
+      .url(s"$baseUrl/api/internal/user-by-email")
       .withQueryStringParameters("email" -> email)
-      .withHttpHeaders("Accept" -> "application/json")
+      .addHttpHeaders("Accept" -> "application/json")
+      .addServiceSecret
       .get()
       .map { response =>
         response.status match {
@@ -39,6 +42,11 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
           case Status.NOT_FOUND => None
         }
       }
+
+  implicit class ServiceSecretHeaders(wsRequest: WSRequest) {
+    def addServiceSecret: WSRequest =
+      wsRequest.addHttpHeaders("Service-Secret" -> settingsService.secretConfig.serviceSecret)
+  }
 }
 
 object RestUserService {
