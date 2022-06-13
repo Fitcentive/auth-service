@@ -11,5 +11,5 @@ import scala.concurrent.Future
 trait AuthAdminRepository {
   def createUserWithBasicAuth(user: BasicAuthKeycloakUser): Future[Unit]
   def resetPassword(email: String, password: String): Future[Unit]
-  def addUserIdToSsoKeycloakUser(authProviderRealm: String, email: String, userId: UUID): Future[Unit]
+  def addAttributesToSsoKeycloakUser(authProviderRealm: String, email: String, userId: UUID): Future[Unit]
 }

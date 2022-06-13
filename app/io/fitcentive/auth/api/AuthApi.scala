@@ -75,7 +75,7 @@ class AuthApi @Inject() (
   ): Future[JsValue] = {
     for {
       newAppUser <- userService.createSsoUser(user.email, ssoProviderRealm)
-      _ <- authAdminRepo.addUserIdToSsoKeycloakUser(ssoProviderRealm, user.email, newAppUser.id)
+      _ <- authAdminRepo.addAttributesToSsoKeycloakUser(ssoProviderRealm, user.email, newAppUser.id)
       newToken <- authTokenRepository.refreshAccessToken(ssoProviderRealm, clientId, refreshToken)
     } yield newToken
   }
