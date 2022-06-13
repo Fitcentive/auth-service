@@ -21,12 +21,9 @@ class AuthController @Inject() (
   with PlayControllerOps
   with ServerErrorHandler {
 
-  def validateToken: Action[AnyContent] =
-    userAuthAction.async { implicit userRequest =>
-      Future.successful(Ok("Success"))
-    }
-
-  // todo - this is just an example, this action might not necessarily make sense here
+  // -----------------------------
+  // Internal Auth routes
+  // -----------------------------
   def createNewUser: Action[AnyContent] =
     internalAuthAction.async { implicit request =>
       validateJson[BasicAuthKeycloakUser](request.body.asJson) { user =>
@@ -38,7 +35,7 @@ class AuthController @Inject() (
     }
 
   def resetPassword: Action[AnyContent] =
-    Action.async { implicit request =>
+    internalAuthAction.async { implicit request =>
       validateJson[PasswordReset](request.body.asJson) { parameters =>
         authApi
           .resetPassword(parameters.email, parameters.password)
@@ -47,8 +44,11 @@ class AuthController @Inject() (
       }
     }
 
+  // -----------------------------
+  // User Auth routes
+  // -----------------------------
   def logout: Action[AnyContent] =
-    Action.async { implicit request =>
+    userAuthAction.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
         authApi
           .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head)
@@ -57,6 +57,23 @@ class AuthController @Inject() (
       }
     }
 
+  def refreshAccessToken: Action[AnyContent] =
+    userAuthAction.async { implicit request =>
+      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
+        authApi
+          .refreshAccessToken(
+            formData.dataParts("realm").head,
+            formData.dataParts("client_id").head,
+            formData.dataParts("refresh_token").head,
+          )
+          .map(Ok(_))
+          .recover(resultErrorAsyncHandler)
+      }
+    }
+
+  // -----------------------------
+  // Unauthenticated routes
+  // -----------------------------
   def login: Action[AnyContent] =
     Action.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
@@ -86,21 +103,6 @@ class AuthController @Inject() (
         .oidcLoginWithRedirect(provider, request)
         .map(handleEitherResult(_)(identity))
         .recover(resultErrorAsyncHandler)
-    }
-
-  def refreshAccessToken: Action[AnyContent] =
-    Action.async { implicit request =>
-      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
-        authApi
-          .refreshAccessToken(
-            formData.dataParts("realm").head,
-            formData.dataParts("client_id").head,
-            formData.dataParts("grant_type").head, // todo - this can be hardcoded
-            formData.dataParts("refresh_token").head,
-          )
-          .map(Ok(_))
-          .recover(resultErrorAsyncHandler)
-      }
     }
 
 }

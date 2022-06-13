@@ -45,6 +45,7 @@ class KeycloakClient(keycloak: Keycloak) extends AppLogger {
     rep.setFirstName(firstName)
     rep.setLastName(lastName)
     rep.singleAttribute(userIdUserAttributeKey, userId.toString)
+    rep.singleAttribute(realmUserAttributeKey, "NativeAuth")
     if (!ssoEnabled) rep.setRequiredActions(List("UPDATE_PASSWORD").asJava)
     rep.setRealmRoles(List("uma_authorization", "offline_access").asJava)
     rep.setClientRoles(Map("account" -> List("manage-account", "view-profile").asJava).asJava)
@@ -81,6 +82,7 @@ class KeycloakClient(keycloak: Keycloak) extends AppLogger {
   def updateUser(realm: String, username: String, userId: UUID): Unit =
     updateUserInKeycloak(realm, username) { rep =>
       rep.singleAttribute(userIdUserAttributeKey, userId.toString)
+      rep.singleAttribute(realmUserAttributeKey, realm)
     }
 
   private def updateUserInKeycloak(realm: String, username: String)(
@@ -102,6 +104,7 @@ object KeycloakClient {
   }
 
   private val userIdUserAttributeKey = "user_id"
+  private val realmUserAttributeKey = "auth_realm"
 
   private val CommonSpecialCharacters: org.passay.CharacterData = new org.passay.CharacterData() {
     override def getErrorCode: String = "INSUFFICIENT_COMMON_SPECIAL"

@@ -16,14 +16,9 @@ class KeycloakTokenService @Inject() (wsClient: WSClient, authProviderOps: AuthP
   ec: KeycloakServerExecutionContext
 ) extends AuthTokenService {
 
-  override def refreshAccessToken(
-    realm: String,
-    clientId: String,
-    grantType: String,
-    refreshToken: String
-  ): Future[JsValue] = {
+  override def refreshAccessToken(realm: String, clientId: String, refreshToken: String): Future[JsValue] = {
     val dataParts =
-      Map("grant_type" -> Seq(grantType), "refresh_token" -> Seq(refreshToken), "client_id" -> Seq(clientId))
+      Map("grant_type" -> Seq("refresh_token"), "refresh_token" -> Seq(refreshToken), "client_id" -> Seq(clientId))
     wsClient
       .url(s"${authProviderOps.authServerHost}/realms/$realm/protocol/openid-connect/token")
       .withHttpHeaders(("Content-Type" -> "application/x-www-form-urlencoded"), ("Accept" -> "application/json"))

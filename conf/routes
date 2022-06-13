@@ -12,5 +12,3 @@ POST     /api/auth/logout                                       io.fitcentive.au
 POST     /api/auth/user/reset-password                          io.fitcentive.auth.controllers.AuthController.resetPassword
 POST     /api/auth/user                                         io.fitcentive.auth.controllers.AuthController.createNewUser
 
-GET      /api/auth/check-token                                      io.fitcentive.auth.controllers.AuthController.validateToken
-

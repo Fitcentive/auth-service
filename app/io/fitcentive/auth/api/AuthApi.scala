@@ -1,7 +1,6 @@
 package io.fitcentive.auth.api
 
 import cats.data.EitherT
-import io.fitcentive.auth.api.AuthApi.refreshTokenGrantType
 import io.fitcentive.auth.domain.errors.OidcTokenValidationError
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
 import io.fitcentive.auth.domain.{AuthorizedUserWithoutId, BasicAuthKeycloakUser, OidcTokenResponse}
@@ -77,19 +76,14 @@ class AuthApi @Inject() (
     for {
       newAppUser <- userService.createSsoUser(user.email, ssoProviderRealm)
       _ <- authAdminRepo.addUserIdToSsoKeycloakUser(ssoProviderRealm, user.email, newAppUser.id)
-      newToken <-
-        authTokenRepository.refreshAccessToken(ssoProviderRealm, clientId, refreshTokenGrantType, refreshToken)
+      newToken <- authTokenRepository.refreshAccessToken(ssoProviderRealm, clientId, refreshToken)
     } yield newToken
   }
 
-  def refreshAccessToken(realm: String, clientId: String, grantType: String, refreshToken: String): Future[JsValue] =
-    authTokenRepository.refreshAccessToken(realm, clientId, grantType, refreshToken)
+  def refreshAccessToken(realm: String, clientId: String, refreshToken: String): Future[JsValue] =
+    authTokenRepository.refreshAccessToken(realm, clientId, refreshToken)
 
   def logout(clientId: String, refreshToken: String): Future[Unit] =
     authTokenRepository.logout(clientId, refreshToken)
 
-}
-
-object AuthApi {
-  val refreshTokenGrantType: String = "refresh_token"
 }
