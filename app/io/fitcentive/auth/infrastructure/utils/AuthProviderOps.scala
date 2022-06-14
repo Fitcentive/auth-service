@@ -11,8 +11,8 @@ trait AuthProviderOps {
   def getRedirectUri(provider: String, clientId: String): String =
     s"${settingsService.serverConfig.host}/api/auth/$provider/callback/$clientId"
 
-  def providerToLoginUrl(provider: String): Either[DomainError, String] = {
-    val serverUrl = settingsService.keycloakConfig.serverUrl
+  def providerToExternalLoginUrl(provider: String): Either[DomainError, String] = {
+    val serverUrl = settingsService.keycloakConfig.externalServerUrl
     provider match {
       case "google" => Right(s"$serverUrl/${settingsService.keycloakConfig.googleOidcLoginUrl}")
       case _        => Left(UnrecognizedOidcProviderError())
@@ -32,7 +32,7 @@ trait AuthProviderOps {
   }
 
   def authServerHost: String =
-    settingsService.keycloakConfig.serverUrl
+    settingsService.keycloakConfig.internalServerUrl
 
   def nativeAuthProviderRealm: String =
     settingsService.keycloakConfig.realms.native

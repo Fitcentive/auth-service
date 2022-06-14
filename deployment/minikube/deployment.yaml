@@ -46,12 +46,14 @@ spec:
             - name: USER_SERVICE_PORT
               value: "9000"
             - name: HTTP_SERVER_HOST
-              value: "http://localhost:9000"
+              value: "http://api.vid.app"
             - name: HTTP_SERVER_PORT
               value: "9000"
             - name: INTERNAL_SERVICE_SECRET
               value: "ymmtuBE62NJRIro6eCBxl5wcIZvmKg3nSTgP2YSyjOB5fq3S0ZNFXdY1DLUBo8ji"
             - name: JWT_ISSUER
-              value: "http://auth-keycloak-http"
-            - name: KEYCLOAK_SERVER_URL
+              value: "http://api.vid.app"
+            - name: KEYCLOAK_EXTERNAL_SERVER_URL
+              value: "http://api.vid.app/auth"
+            - name: KEYCLOAK_INTERNAL_SERVER_URL
               value: "http://auth-keycloak-http/auth"

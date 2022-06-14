@@ -33,7 +33,8 @@ class AuthApi @Inject() (
 
   def oidcLoginWithRedirect(provider: String, rawRequest: Request[AnyContent]): Future[Either[DomainError, Result]] = {
     (for {
-      loginUrl <- EitherT[Future, DomainError, String](Future.successful(authProviderOps.providerToLoginUrl(provider)))
+      loginUrl <-
+        EitherT[Future, DomainError, String](Future.successful(authProviderOps.providerToExternalLoginUrl(provider)))
       result <- EitherT.right[DomainError](Future.successful(Redirect(loginUrl, rawRequest.queryString)))
     } yield result).value
   }

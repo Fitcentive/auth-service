@@ -3,7 +3,8 @@ package io.fitcentive.auth.domain.config
 import com.typesafe.config.Config
 
 case class KeycloakConfig(
-  serverUrl: String,
+  internalServerUrl: String,
+  externalServerUrl: String,
   googleOidcLoginUrl: String,
   clientId: String,
   clientSecret: String,
@@ -15,7 +16,8 @@ case class KeycloakConfig(
 object KeycloakConfig {
   def apply(config: Config): KeycloakConfig =
     new KeycloakConfig(
-      serverUrl = config.getString("server-url"),
+      internalServerUrl = config.getString("internal-server-url"),
+      externalServerUrl = config.getString("external-server-url"),
       googleOidcLoginUrl = config.getString("google-oidc-login-url"),
       clientId = config.getString("client-id"),
       clientSecret = config.getString("client-secret"),

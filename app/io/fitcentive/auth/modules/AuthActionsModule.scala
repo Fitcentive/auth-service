@@ -32,7 +32,7 @@ class AuthActionsModule extends AbstractModule {
   @Provides
   @Singleton
   def provideCachedKeycloakPublicKeyRepository(settingsService: SettingsService): PublicKeyRepository = {
-    val underlying = new KeycloakPublicKeyRepository(settingsService.keycloakConfig.serverUrl)
+    val underlying = new KeycloakPublicKeyRepository(settingsService.keycloakConfig.internalServerUrl)
     new CachedKeycloakPublicKeyRepository(underlying)
   }
 

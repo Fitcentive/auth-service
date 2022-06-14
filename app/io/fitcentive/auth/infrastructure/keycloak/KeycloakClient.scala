@@ -168,7 +168,7 @@ object KeycloakClient {
   }
 
   def fromConfig(config: Config): Keycloak = {
-    val serverUrl = config.getString("server-url")
+    val serverUrl = config.getString("internal-server-url")
     val realm = "master"
     val username = config.getString("username")
     val password = config.getString("password")
