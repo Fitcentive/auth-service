@@ -5,6 +5,7 @@ metadata:
 spec:
   selector:
     app: auth-service
+  type: ClusterIP
   ports:
     - protocol: TCP
       name: http

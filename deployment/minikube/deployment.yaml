@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  labels:
+    app: auth-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: auth:1.0
+          imagePullPolicy: Never
+          resources:
+            requests:
+              memory: 300Mi
+              cpu: "0.5"
+            limits:
+              memory: 500Mi
+              cpu: "1.0"
+          ports:
+            - name: http-port
+              containerPort: 9000
+          readinessProbe:
+            httpGet:
+              path: /api/auth/health
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /api/auth/health
+              port: 9000
+            initialDelaySeconds: 120
+            periodSeconds: 15
+          env:
+            - name: USER_SERVICE_HOST
+              value: "http://user-service"
+            - name: USER_SERVICE_PORT
+              value: "9000"
+            - name: HTTP_SERVER_HOST
+              value: "http://localhost:9000"
+            - name: HTTP_SERVER_PORT
+              value: "9000"
+            - name: INTERNAL_SERVICE_SECRET
+              value: "ymmtuBE62NJRIro6eCBxl5wcIZvmKg3nSTgP2YSyjOB5fq3S0ZNFXdY1DLUBo8ji"
+            - name: JWT_ISSUER
+              value: "http://auth-keycloak-http"
+            - name: KEYCLOAK_SERVER_URL
+              value: "http://auth-keycloak-http/auth"

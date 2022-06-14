@@ -31,7 +31,7 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
 
   override def getUserByEmail(email: String): Future[Option[User]] =
     wsClient
-      .url(s"$baseUrl/api/internal/user-by-email")
+      .url(s"$baseUrl/api/internal/user/email")
       .withQueryStringParameters("email" -> email)
       .addHttpHeaders("Accept" -> "application/json")
       .addServiceSecret

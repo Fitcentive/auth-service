@@ -3,7 +3,7 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-GET      /health                                                io.fitcentive.auth.controllers.HealthController.healthCheck
+GET      /api/auth/health                                       io.fitcentive.auth.controllers.HealthController.healthCheck
 
 POST     /api/auth/login                                        io.fitcentive.auth.controllers.AuthController.login
 GET      /api/auth/login/:provider                              io.fitcentive.auth.controllers.AuthController.ssoLogin(provider: String)
