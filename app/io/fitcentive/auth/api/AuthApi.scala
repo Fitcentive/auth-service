@@ -39,9 +39,6 @@ class AuthApi @Inject() (
     } yield result).value
   }
 
-  def generateTokenFromCredentials(userName: String, password: String, clientId: String): Future[JsValue] =
-    authTokenRepository.getTokenWithCredentials(userName, password, clientId)
-
   def generateAccessTokenAndCreateUserIfNeeded(
     provider: String,
     authCode: String,

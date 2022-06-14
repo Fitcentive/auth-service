@@ -155,10 +155,6 @@ object KeycloakClient {
     * @return Tuple of (credentials, clearText).
     */
   def credentialFactory(clearText: String = generatePassword()): (CredentialRepresentation, String) = {
-    val salt = secureRandom.generateSeed(16)
-    val salt_b64 = new String(base64.encode(salt))
-    val hashValue = pbkdf2(clearText.toCharArray, salt, hashIterations, 512)
-    val hashValue_b64 = new String(base64.encode(hashValue))
     val credentials = new CredentialRepresentation
 
     credentials.setValue(clearText)

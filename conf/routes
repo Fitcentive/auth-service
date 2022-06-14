@@ -5,7 +5,6 @@
 
 GET      /api/auth/health                                       io.fitcentive.auth.controllers.HealthController.healthCheck
 
-POST     /api/auth/login                                        io.fitcentive.auth.controllers.AuthController.login
 GET      /api/auth/login/:provider                              io.fitcentive.auth.controllers.AuthController.ssoLogin(provider: String)
 GET      /api/auth/:provider/callback/:clientId                 io.fitcentive.auth.controllers.AuthController.oidcCallback(provider: String, clientId: String, code: String)
 POST     /api/auth/refresh                                      io.fitcentive.auth.controllers.AuthController.refreshAccessToken

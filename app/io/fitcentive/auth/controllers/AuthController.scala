@@ -74,20 +74,6 @@ class AuthController @Inject() (
   // -----------------------------
   // Unauthenticated routes
   // -----------------------------
-  def login: Action[AnyContent] =
-    Action.async { implicit request =>
-      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Username/password required"))) { formData =>
-        authApi
-          .generateTokenFromCredentials(
-            formData.dataParts("username").head,
-            formData.dataParts("password").head,
-            formData.dataParts("client_id").head
-          )
-          .map(Ok(_))
-          .recover(resultErrorAsyncHandler)
-      }
-    }
-
   // todo - validate on `state`? Might need distributed cache
   def oidcCallback(provider: String, clientId: String, code: String): Action[AnyContent] =
     Action.async { implicit request =>

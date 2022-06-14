@@ -37,22 +37,6 @@ class KeycloakTokenService @Inject() (wsClient: WSClient, authProviderOps: AuthP
       .map(_ => ())
   }
 
-  override def getTokenWithCredentials(username: String, password: String, clientId: String): Future[JsValue] = {
-    val dataParts = Map(
-      "grant_type" -> Seq("password"),
-      "username" -> Seq(username),
-      "password" -> Seq(password),
-      "client_id" -> Seq(clientId),
-    )
-    wsClient
-      .url(
-        s"${authProviderOps.authServerHost}/realms/${authProviderOps.nativeAuthProviderRealm}/protocol/openid-connect/token"
-      )
-      .withHttpHeaders(("Content-Type" -> "application/x-www-form-urlencoded"), ("Accept" -> "application/json"))
-      .post(dataParts)
-      .map(_.json)
-  }
-
   override def getTokenWithAuthCode(
     provider: String,
     authCode: String,
