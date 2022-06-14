@@ -79,6 +79,12 @@ class KeycloakClient(keycloak: Keycloak) extends AppLogger {
     users.search(username).asScala.exists(_.getUsername == username)
   }
 
+  def updateUserProfile(realm: String, username: String, firstName: String, lastName: String): Unit =
+    updateUserInKeycloak(realm, username) { rep =>
+      rep.setFirstName(firstName)
+      rep.tap(_.setLastName(lastName))
+    }
+
   def addAttributesToUser(realm: String, username: String, userId: UUID): Unit =
     updateUserInKeycloak(realm, username) { rep =>
       rep.singleAttribute(userIdUserAttributeKey, userId.toString)

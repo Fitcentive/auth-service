@@ -2,7 +2,7 @@ package io.fitcentive.auth.controllers
 
 import io.fitcentive.auth.infrastructure.utils.ServerErrorHandler
 import io.fitcentive.auth.api.AuthApi
-import io.fitcentive.auth.domain.{BasicAuthKeycloakUser, PasswordReset}
+import io.fitcentive.auth.domain.{BasicAuthKeycloakUser, PasswordReset, UpdateKeycloakUserProfile}
 import io.fitcentive.sdk.play.{InternalAuthAction, UserAuthAction}
 import io.fitcentive.sdk.utils.PlayControllerOps
 import play.api.mvc._
@@ -40,6 +40,16 @@ class AuthController @Inject() (
         authApi
           .resetPassword(parameters.email, parameters.password)
           .map(_ => Ok("Successful"))
+          .recover(resultErrorAsyncHandler)
+      }
+    }
+
+  def updateUser: Action[AnyContent] =
+    internalAuthAction.async { implicit request =>
+      validateJson[UpdateKeycloakUserProfile](request.body.asJson) { user =>
+        authApi
+          .updateKeycloakUserProfile(user)
+          .map(handleEitherResult(_)(_ => Ok("User updated successfully")))
           .recover(resultErrorAsyncHandler)
       }
     }

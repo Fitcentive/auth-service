@@ -14,6 +14,21 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient, authProviderOps
   ec: KeycloakClientExecutionContext
 ) extends AuthAdminRepository {
 
+  override def checkIfUserExists(authProviderRealm: String, email: String): Future[Boolean] =
+    Future {
+      client.userExists(authProviderRealm, email)
+    }
+
+  override def updateUserProfile(
+    authProviderRealm: String,
+    email: String,
+    firstName: String,
+    lastName: String
+  ): Future[Unit] =
+    Future {
+      client.updateUserProfile(authProviderRealm, email, firstName, lastName)
+    }
+
   override def createUserWithBasicAuth(user: BasicAuthKeycloakUser): Future[Unit] =
     for {
       providerRealm <- Future.successful(authProviderOps.nativeAuthProviderRealm)

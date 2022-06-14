@@ -12,4 +12,6 @@ trait AuthAdminRepository {
   def createUserWithBasicAuth(user: BasicAuthKeycloakUser): Future[Unit]
   def resetPassword(email: String, password: String): Future[Unit]
   def addAttributesToSsoKeycloakUser(authProviderRealm: String, email: String, userId: UUID): Future[Unit]
+  def updateUserProfile(authProviderRealm: String, email: String, firstName: String, lastName: String): Future[Unit]
+  def checkIfUserExists(authProviderRealm: String, email: String): Future[Boolean]
 }

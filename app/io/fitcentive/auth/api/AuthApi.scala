@@ -3,11 +3,16 @@ package io.fitcentive.auth.api
 import cats.data.EitherT
 import io.fitcentive.auth.domain.errors.OidcTokenValidationError
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
-import io.fitcentive.auth.domain.{AuthorizedUserWithoutId, BasicAuthKeycloakUser, OidcTokenResponse}
+import io.fitcentive.auth.domain.{
+  AuthorizedUserWithoutId,
+  BasicAuthKeycloakUser,
+  OidcTokenResponse,
+  UpdateKeycloakUserProfile
+}
 import io.fitcentive.auth.repositories.AuthAdminRepository
 import io.fitcentive.auth.services.{AuthTokenService, UserService}
 import io.fitcentive.sdk.domain.TokenValidationService
-import io.fitcentive.sdk.error.DomainError
+import io.fitcentive.sdk.error.{DomainError, EntityNotFoundError}
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Request, Result}
@@ -25,6 +30,18 @@ class AuthApi @Inject() (
   tokenValidationService: TokenValidationService,
   userService: UserService,
 )(implicit ec: ExecutionContext) {
+
+  def updateKeycloakUserProfile(user: UpdateKeycloakUserProfile): Future[Either[DomainError, Unit]] = {
+    (for {
+      _ <- EitherT[Future, DomainError, Unit](authAdminRepo.checkIfUserExists(user.authProvider, user.email).map {
+        case true  => Right()
+        case false => Left(EntityNotFoundError("No user found!"))
+      })
+      _ <- EitherT.right[DomainError](
+        authAdminRepo.updateUserProfile(user.authProvider, user.email, user.firstName, user.lastName)
+      )
+    } yield ()).value
+  }
 
   def createNewKeycloakUser(user: BasicAuthKeycloakUser): Future[Unit] =
     authAdminRepo.createUserWithBasicAuth(user)
@@ -73,6 +90,7 @@ class AuthApi @Inject() (
   ): Future[JsValue] = {
     for {
       newAppUser <- userService.createSsoUser(user.email, ssoProviderRealm)
+      _ <- userService.updateUserProfile(newAppUser.id, user.firstName, user.lastName)
       _ <- authAdminRepo.addAttributesToSsoKeycloakUser(ssoProviderRealm, user.email, newAppUser.id)
       newToken <- authTokenRepository.refreshAccessToken(ssoProviderRealm, clientId, refreshToken)
     } yield newToken

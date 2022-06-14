@@ -2,13 +2,14 @@ package io.fitcentive.auth.infrastructure.rest
 
 import io.fitcentive.auth.domain.{PasswordReset, User}
 import io.fitcentive.auth.infrastructure.contexts.KeycloakServerExecutionContext
-import io.fitcentive.auth.infrastructure.rest.RestUserService.CreateNewAppUserPayload
+import io.fitcentive.auth.infrastructure.rest.RestUserService.{CreateNewAppUserPayload, UpdateUserProfilePayload}
 import io.fitcentive.auth.services.{SettingsService, UserService}
 import io.fitcentive.sdk.config.ServerConfig
 import play.api.http.Status
 import play.api.libs.json.{Json, Writes}
 import play.api.libs.ws.{WSClient, WSRequest}
 
+import java.util.UUID
 import javax.inject.Inject
 import scala.concurrent.Future
 import scala.util.chaining.scalaUtilChainingOps
@@ -19,6 +20,14 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
 
   private val userServiceConfig: ServerConfig = settingsService.userServiceConfig
   val baseUrl: String = userServiceConfig.serverUrl
+
+  override def updateUserProfile(userId: UUID, firstName: String, lastName: String): Future[Unit] =
+    wsClient
+      .url(s"$baseUrl/api/internal/user/$userId/profile")
+      .addHttpHeaders("Accept" -> "application/json")
+      .addServiceSecret
+      .post(Json.toJson(UpdateUserProfilePayload(firstName, lastName)))
+      .map(_ => ())
 
   override def createSsoUser(email: String, ssoProvider: String): Future[User] =
     wsClient
@@ -52,8 +61,12 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
 object RestUserService {
 
   case class CreateNewAppUserPayload(email: String, ssoProvider: String)
-
   object CreateNewAppUserPayload {
     implicit lazy val writes: Writes[CreateNewAppUserPayload] = Json.writes[CreateNewAppUserPayload]
+  }
+
+  case class UpdateUserProfilePayload(firstName: String, lastName: String)
+  object UpdateUserProfilePayload {
+    implicit lazy val writes: Writes[UpdateUserProfilePayload] = Json.writes[UpdateUserProfilePayload]
   }
 }
