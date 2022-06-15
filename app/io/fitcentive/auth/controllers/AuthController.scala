@@ -3,7 +3,7 @@ package io.fitcentive.auth.controllers
 import io.fitcentive.auth.infrastructure.utils.ServerErrorHandler
 import io.fitcentive.auth.api.AuthApi
 import io.fitcentive.auth.domain.{BasicAuthKeycloakUser, PasswordReset, UpdateKeycloakUserProfile}
-import io.fitcentive.sdk.play.{InternalAuthAction, UserAuthAction}
+import io.fitcentive.sdk.play.{InternalAuthAction, NewSsoUserAuthAction, UserAuthAction}
 import io.fitcentive.sdk.utils.PlayControllerOps
 import play.api.mvc._
 
@@ -15,6 +15,7 @@ class AuthController @Inject() (
   authApi: AuthApi,
   cc: ControllerComponents,
   userAuthAction: UserAuthAction,
+  newSsoUserAuthAction: NewSsoUserAuthAction,
   internalAuthAction: InternalAuthAction
 )(implicit exec: ExecutionContext)
   extends AbstractController(cc)
@@ -79,6 +80,17 @@ class AuthController @Inject() (
           .map(Ok(_))
           .recover(resultErrorAsyncHandler)
       }
+    }
+
+  /**
+    * New SSO User Auth Route
+    */
+  def createNewDomainSsoUser(providerRealm: String): Action[AnyContent] =
+    newSsoUserAuthAction.async { implicit newSsoUserRequest =>
+      authApi
+        .createNewDomainSsoUser(newSsoUserRequest.newSsoUser, providerRealm)
+        .map(handleEitherResult(_)(_ => Ok("Sso user created!")))
+        .recover(resultErrorAsyncHandler)
     }
 
   // -----------------------------

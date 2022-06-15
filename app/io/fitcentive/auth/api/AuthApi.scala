@@ -3,16 +3,12 @@ package io.fitcentive.auth.api
 import cats.data.EitherT
 import io.fitcentive.auth.domain.errors.OidcTokenValidationError
 import io.fitcentive.auth.infrastructure.utils.AuthProviderOps
-import io.fitcentive.auth.domain.{
-  AuthorizedUserWithoutId,
-  BasicAuthKeycloakUser,
-  OidcTokenResponse,
-  UpdateKeycloakUserProfile
-}
+import io.fitcentive.auth.domain.{BasicAuthKeycloakUser, OidcTokenResponse, UpdateKeycloakUserProfile, User}
 import io.fitcentive.auth.repositories.AuthAdminRepository
 import io.fitcentive.auth.services.{AuthTokenService, UserService}
 import io.fitcentive.sdk.domain.TokenValidationService
-import io.fitcentive.sdk.error.{DomainError, EntityNotFoundError}
+import io.fitcentive.sdk.error.{DomainError, EntityConflictError, EntityNotFoundError}
+import io.fitcentive.sdk.play.domain.AuthorizedUserWithoutId
 import play.api.libs.json.JsValue
 import play.api.mvc.Results.Redirect
 import play.api.mvc.{AnyContent, Request, Result}
@@ -54,6 +50,26 @@ class AuthApi @Inject() (
         EitherT[Future, DomainError, String](Future.successful(authProviderOps.providerToExternalLoginUrl(provider)))
       result <- EitherT.right[DomainError](Future.successful(Redirect(loginUrl, rawRequest.queryString)))
     } yield result).value
+  }
+
+  def createNewDomainSsoUser(
+    newSsoUser: AuthorizedUserWithoutId,
+    providerRealm: String
+  ): Future[Either[DomainError, Unit]] = {
+    (for {
+      _ <- EitherT[Future, DomainError, Unit](
+        userService
+          .getUserByEmail(newSsoUser.email)
+          .map(_.map(_ => Left(EntityConflictError("User already exists!"))).getOrElse(Right()))
+      )
+      newAppUser <- EitherT.right[DomainError](userService.createSsoUser(newSsoUser.email, providerRealm))
+      _ <- EitherT.right[DomainError](
+        userService.updateUserProfile(newAppUser.id, newSsoUser.firstName, newSsoUser.lastName)
+      )
+      _ <- EitherT.right[DomainError](
+        authAdminRepo.addAttributesToSsoKeycloakUser(providerRealm, newSsoUser.email, newAppUser.id)
+      )
+    } yield ()).value
   }
 
   def generateAccessTokenAndCreateUserIfNeeded(
