@@ -58,12 +58,12 @@ class AuthController @Inject() (
   // -----------------------------
   // User Auth routes
   // -----------------------------
-  def logout(provider: Option[String]): Action[AnyContent] =
+  def logout(providerRealm: String): Action[AnyContent] =
     userAuthAction.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
         authApi
-          .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head, provider)
-          .map(handleEitherResult(_)(_ => NoContent))
+          .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head, providerRealm)
+          .map(_ => NoContent)
           .recover(resultErrorAsyncHandler)
       }
     }
@@ -105,6 +105,7 @@ class AuthController @Inject() (
         .recover(resultErrorAsyncHandler)
     }
 
+  // Not used by mobile app at least... is it needed?
   def ssoLogin(provider: String): Action[AnyContent] =
     Action.async { implicit request =>
       authApi

@@ -8,7 +8,7 @@ GET      /api/auth/health                                       io.fitcentive.au
 GET      /api/auth/login/:provider                              io.fitcentive.auth.controllers.AuthController.ssoLogin(provider: String)
 GET      /api/auth/:provider/callback/:clientId                 io.fitcentive.auth.controllers.AuthController.oidcCallback(provider: String, clientId: String, code: String)
 POST     /api/auth/refresh                                      io.fitcentive.auth.controllers.AuthController.refreshAccessToken
-POST     /api/auth/logout                                       io.fitcentive.auth.controllers.AuthController.logout(provider: Option[String])
+POST     /api/auth/logout/:providerRealm                        io.fitcentive.auth.controllers.AuthController.logout(providerRealm: String)
 POST     /api/auth/realm/:providerRealm/user                    io.fitcentive.auth.controllers.AuthController.createNewDomainSsoUser(providerRealm: String)
 
 POST     /api/internal/auth/user/reset-password                 io.fitcentive.auth.controllers.AuthController.resetPassword

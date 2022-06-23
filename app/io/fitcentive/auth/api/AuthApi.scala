@@ -115,12 +115,7 @@ class AuthApi @Inject() (
   def refreshAccessToken(realm: String, clientId: String, refreshToken: String): Future[JsValue] =
     authTokenRepository.refreshAccessToken(realm, clientId, refreshToken)
 
-  def logout(clientId: String, refreshToken: String, provider: Option[String]): Future[Either[DomainError, Unit]] = {
-    (for {
-      authRealm <- EitherT[Future, DomainError, String](Future.successful(authProviderOps.providerToRealm(provider)))
-      _ <- EitherT.right[DomainError](authTokenRepository.logout(clientId, refreshToken, authRealm))
-    } yield ()).value
-
-  }
+  def logout(clientId: String, refreshToken: String, providerRealm: String): Future[Unit] =
+    authTokenRepository.logout(clientId, refreshToken, providerRealm)
 
 }
