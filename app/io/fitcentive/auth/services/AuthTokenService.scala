@@ -11,5 +11,5 @@ import scala.concurrent.Future
 trait AuthTokenService {
   def refreshAccessToken(realm: String, clientId: String, refreshToken: String): Future[JsValue]
   def getTokenWithAuthCode(provider: String, authCode: String, clientId: String): Future[Either[DomainError, JsValue]]
-  def logout(clientId: String, refreshToken: String): Future[Unit]
+  def logout(clientId: String, refreshToken: String, realm: String): Future[Unit]
 }

@@ -26,12 +26,10 @@ class KeycloakTokenService @Inject() (wsClient: WSClient, authProviderOps: AuthP
       .map(_.json)
   }
 
-  override def logout(clientId: String, refreshToken: String): Future[Unit] = {
+  override def logout(clientId: String, refreshToken: String, realm: String): Future[Unit] = {
     val dataParts = Map("refresh_token" -> Seq(refreshToken), "client_id" -> Seq(clientId))
     wsClient
-      .url(
-        s"${authProviderOps.authServerHost}/realms/${authProviderOps.nativeAuthProviderRealm}/protocol/openid-connect/logout"
-      )
+      .url(s"${authProviderOps.authServerHost}/realms/$realm/protocol/openid-connect/logout")
       .withHttpHeaders("Content-Type" -> "application/x-www-form-urlencoded")
       .post(dataParts)
       .map(_ => ())

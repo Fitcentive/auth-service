@@ -58,12 +58,12 @@ class AuthController @Inject() (
   // -----------------------------
   // User Auth routes
   // -----------------------------
-  def logout: Action[AnyContent] =
+  def logout(provider: Option[String]): Action[AnyContent] =
     userAuthAction.async { implicit request =>
       request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
         authApi
-          .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head)
-          .map(_ => NoContent)
+          .logout(formData.dataParts("client_id").head, formData.dataParts("refresh_token").head, provider)
+          .map(handleEitherResult(_)(_ => NoContent))
           .recover(resultErrorAsyncHandler)
       }
     }
