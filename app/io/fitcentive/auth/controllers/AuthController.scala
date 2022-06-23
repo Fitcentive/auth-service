@@ -89,7 +89,7 @@ class AuthController @Inject() (
     newSsoUserAuthAction.async { implicit newSsoUserRequest =>
       authApi
         .createNewDomainSsoUser(newSsoUserRequest.newSsoUser, providerRealm)
-        .map(handleEitherResult(_)(_ => Ok("Sso user created!")))
+        .map(handleEitherResult(_)(_ => Created("Sso user created!")))
         .recover(resultErrorAsyncHandler)
     }
 
