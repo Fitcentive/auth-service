@@ -82,6 +82,20 @@ class AuthController @Inject() (
       }
     }
 
+  def refreshAccessTokenForUserWithoutId: Action[AnyContent] =
+    newSsoUserAuthAction.async { implicit request =>
+      request.body.asMultipartFormData.fold(Future.successful(BadRequest("Refresh token required"))) { formData =>
+        authApi
+          .refreshAccessToken(
+            formData.dataParts("realm").head,
+            formData.dataParts("client_id").head,
+            formData.dataParts("refresh_token").head,
+          )
+          .map(Ok(_))
+          .recover(resultErrorAsyncHandler)
+      }
+    }
+
   /**
     * New SSO User Auth Route
     */
