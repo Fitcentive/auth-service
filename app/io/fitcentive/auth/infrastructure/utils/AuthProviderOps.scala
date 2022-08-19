@@ -15,6 +15,7 @@ trait AuthProviderOps {
     val serverUrl = settingsService.keycloakConfig.externalServerUrl
     provider match {
       case "google" => Right(s"$serverUrl/${settingsService.keycloakConfig.googleOidcLoginUrl}")
+      case "apple"  => Right(s"$serverUrl/${settingsService.keycloakConfig.appleOidcLoginUrl}")
       case _        => Left(UnrecognizedOidcProviderError())
     }
   }
@@ -24,6 +25,7 @@ trait AuthProviderOps {
       case Some(provider) =>
         provider match {
           case "google" => Right(settingsService.keycloakConfig.realms.google)
+          case "apple"  => Right(settingsService.keycloakConfig.realms.apple)
           case _        => Left(UnrecognizedOidcProviderError())
         }
       case None =>
