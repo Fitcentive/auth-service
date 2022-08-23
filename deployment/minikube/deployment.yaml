@@ -52,7 +52,7 @@ spec:
             - name: INTERNAL_SERVICE_SECRET
               value: "ymmtuBE62NJRIro6eCBxl5wcIZvmKg3nSTgP2YSyjOB5fq3S0ZNFXdY1DLUBo8ji"
             - name: JWT_ISSUER
-              value: "http://api.vid.app"
+              value: "https://api.vid.app"
             - name: KEYCLOAK_EXTERNAL_SERVER_URL
               value: "http://api.vid.app/auth"
             - name: KEYCLOAK_INTERNAL_SERVER_URL

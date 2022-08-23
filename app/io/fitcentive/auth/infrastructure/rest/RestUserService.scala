@@ -21,7 +21,7 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
   private val userServiceConfig: ServerConfig = settingsService.userServiceConfig
   val baseUrl: String = userServiceConfig.serverUrl
 
-  override def updateUserProfile(userId: UUID, firstName: String, lastName: String): Future[Unit] =
+  override def updateUserProfile(userId: UUID, firstName: Option[String], lastName: Option[String]): Future[Unit] =
     wsClient
       .url(s"$baseUrl/api/internal/user/$userId/profile")
       .addHttpHeaders("Accept" -> "application/json")
@@ -65,7 +65,7 @@ object RestUserService {
     implicit lazy val writes: Writes[CreateNewAppUserPayload] = Json.writes[CreateNewAppUserPayload]
   }
 
-  case class UpdateUserProfilePayload(firstName: String, lastName: String)
+  case class UpdateUserProfilePayload(firstName: Option[String], lastName: Option[String])
   object UpdateUserProfilePayload {
     implicit lazy val writes: Writes[UpdateUserProfilePayload] = Json.writes[UpdateUserProfilePayload]
   }

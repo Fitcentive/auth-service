@@ -11,5 +11,5 @@ import scala.concurrent.Future
 trait UserService {
   def getUserByEmail(email: String): Future[Option[User]]
   def createSsoUser(email: String, ssoProvider: String): Future[User]
-  def updateUserProfile(userId: UUID, firstName: String, lastName: String): Future[Unit]
+  def updateUserProfile(userId: UUID, firstName: Option[String], lastName: Option[String]): Future[Unit]
 }
