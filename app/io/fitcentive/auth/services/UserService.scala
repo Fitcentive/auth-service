@@ -10,6 +10,7 @@ import scala.concurrent.Future
 @ImplementedBy(classOf[RestUserService])
 trait UserService {
   def getUserByEmailAndRealm(email: String, providerRealm: String): Future[Option[User]]
+  def getUserByEmail(email: String): Future[Option[User]]
   def createSsoUser(email: String, ssoProvider: String): Future[User]
   def updateUserProfile(userId: UUID, firstName: Option[String], lastName: Option[String]): Future[Unit]
 }

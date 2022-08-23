@@ -21,6 +21,13 @@ class KeycloakClient(keycloak: Keycloak) extends AppLogger {
 
   import KeycloakClient._
 
+  def deleteUser(realm: String, email: String): Unit = {
+    keycloak.realm(realm).users().search(email, true).pipe { results =>
+      if (results.size() == 1)
+        keycloak.realm(realm).users().delete(results.get(0).getId)
+    }
+  }
+
   /**
     * Add a new user, via the Keycloak client provided.
     * @param userId will be the domain user id - it will be just an attribute.

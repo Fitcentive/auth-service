@@ -52,6 +52,20 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
         }
       }
 
+  override def getUserByEmail(email: String): Future[Option[User]] =
+    wsClient
+      .url(s"$baseUrl/api/internal/user/email-only")
+      .withQueryStringParameters("email" -> email)
+      .addHttpHeaders("Accept" -> "application/json")
+      .addServiceSecret
+      .get()
+      .map { response =>
+        response.status match {
+          case Status.OK        => response.json.as[User].pipe(Some.apply)
+          case Status.NOT_FOUND => None
+        }
+      }
+
   implicit class ServiceSecretHeaders(wsRequest: WSRequest) {
     def addServiceSecret: WSRequest =
       wsRequest.addHttpHeaders("Service-Secret" -> settingsService.secretConfig.serviceSecret)

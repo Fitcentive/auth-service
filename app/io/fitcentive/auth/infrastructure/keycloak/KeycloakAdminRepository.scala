@@ -14,6 +14,11 @@ class KeycloakAdminRepository @Inject() (client: KeycloakClient, authProviderOps
   ec: KeycloakClientExecutionContext
 ) extends AuthAdminRepository {
 
+  override def deleteUser(authProviderRealm: String, email: String): Future[Unit] =
+    Future {
+      client.deleteUser(authProviderRealm, email)
+    }
+
   override def checkIfUserExists(authProviderRealm: String, email: String): Future[Boolean] =
     Future {
       client.userExists(authProviderRealm, email)

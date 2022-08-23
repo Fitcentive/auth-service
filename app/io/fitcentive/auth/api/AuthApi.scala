@@ -59,8 +59,8 @@ class AuthApi @Inject() (
     (for {
       _ <- EitherT[Future, DomainError, Unit](
         userService
-          .getUserByEmailAndRealm(newSsoUser.email, providerRealm)
-          .map(_.map(_ => Left(EntityConflictError("User already exists!"))).getOrElse(Right()))
+          .getUserByEmail(newSsoUser.email)
+          .map(_.map(_ => Left(EntityConflictError("User with given email already exists!"))).getOrElse(Right()))
       )
       newAppUser <- EitherT.right[DomainError](userService.createSsoUser(newSsoUser.email, providerRealm))
       _ <- EitherT.right[DomainError](
@@ -69,9 +69,15 @@ class AuthApi @Inject() (
       _ <- EitherT.right[DomainError](
         authAdminRepo.addAttributesToSsoKeycloakUser(providerRealm, newSsoUser.email, newAppUser.id)
       )
-    } yield ()).value
+    } yield ()).value.flatMap {
+      case Right(_) => Future.successful(Right(()))
+      // Delete keycloak user if domain user cannot be created
+      case Left(EntityConflictError(e)) =>
+        authAdminRepo.deleteUser(providerRealm, newSsoUser.email).map(_ => Left(EntityConflictError(e)))
+    }
   }
 
+  // Note - this is only used for http/postman logins. Webapp/Mobileapp handle redirects on client side directly
   def generateAccessTokenAndCreateUserIfNeeded(
     provider: String,
     authCode: String,
