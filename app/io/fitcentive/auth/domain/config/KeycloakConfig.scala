@@ -7,6 +7,7 @@ case class KeycloakConfig(
   externalServerUrl: String,
   googleOidcLoginUrl: String,
   appleOidcLoginUrl: String,
+  facebookOidcLoginUrl: String,
   clientId: String,
   clientSecret: String,
   username: String,
@@ -21,6 +22,7 @@ object KeycloakConfig {
       externalServerUrl = config.getString("external-server-url"),
       googleOidcLoginUrl = config.getString("google-oidc-login-url"),
       appleOidcLoginUrl = config.getString("apple-oidc-login-url"),
+      facebookOidcLoginUrl = config.getString("facebook-oidc-login-url"),
       clientId = config.getString("client-id"),
       clientSecret = config.getString("client-secret"),
       username = config.getString("username"),
@@ -28,6 +30,7 @@ object KeycloakConfig {
       realms = KeycloakAuthRealms(
         google = config.getString("realms.google"),
         apple = config.getString("realms.apple"),
+        facebook = config.getString("realms.facebook"),
         native = config.getString("realms.native")
       )
     )
