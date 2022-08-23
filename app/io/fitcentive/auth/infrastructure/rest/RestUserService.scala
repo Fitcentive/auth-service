@@ -38,10 +38,10 @@ class RestUserService @Inject() (wsClient: WSClient, settingsService: SettingsSe
       .post(Json.toJson(CreateNewAppUserPayload(email, ssoProvider)))
       .map(_.json.as[User])
 
-  override def getUserByEmail(email: String): Future[Option[User]] =
+  override def getUserByEmailAndRealm(email: String, providerRealm: String): Future[Option[User]] =
     wsClient
       .url(s"$baseUrl/api/internal/user/email")
-      .withQueryStringParameters("email" -> email)
+      .withQueryStringParameters("email" -> email, "realm" -> providerRealm)
       .addHttpHeaders("Accept" -> "application/json")
       .addServiceSecret
       .get()

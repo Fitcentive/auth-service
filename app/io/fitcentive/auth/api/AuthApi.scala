@@ -59,7 +59,7 @@ class AuthApi @Inject() (
     (for {
       _ <- EitherT[Future, DomainError, Unit](
         userService
-          .getUserByEmail(newSsoUser.email)
+          .getUserByEmailAndRealm(newSsoUser.email, providerRealm)
           .map(_.map(_ => Left(EntityConflictError("User already exists!"))).getOrElse(Right()))
       )
       newAppUser <- EitherT.right[DomainError](userService.createSsoUser(newSsoUser.email, providerRealm))
@@ -89,8 +89,8 @@ class AuthApi @Inject() (
       authorizedUser <- EitherT[Future, DomainError, AuthorizedUserWithoutId](
         tokenValidationService.validateJwt[AuthorizedUserWithoutId](parsedTokens.access_token).pipe(Future.successful)
       )
-      userOpt <- EitherT.right[DomainError](userService.getUserByEmail(authorizedUser.email))
       providerRealm <- EitherT(Future.successful(authProviderOps.providerToRealm(Some(provider))))
+      userOpt <- EitherT.right[DomainError](userService.getUserByEmailAndRealm(authorizedUser.email, providerRealm))
       result <- EitherT.right[DomainError] {
         if (userOpt.isDefined) Future.successful(authTokens)
         else createNewAppUserAndRefreshTokens(authorizedUser, providerRealm, clientId, parsedTokens.refresh_token)
