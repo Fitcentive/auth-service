@@ -143,6 +143,7 @@ Note - these pre-requisites need only be done **once ever**. If you are deployin
 2. For the certificate to be accepted on Android or iOS devices, you have to import the certificate into the device and trust it manually
     - For Android or iOS, copy the `rootCA.pem` or `rootCA.der` file generated in step 1 into the device filesystem. Then, follow device specific instructions to trust the certificate
     - One might require conversion of `.pem` to `.der` or vice versa - make sure you use the right format (conversion is easy via a quick search)
+    - `openssl x509 -inform PEM -outform DER -in rootCA.pem -out rootCA.der`
 
 
 
