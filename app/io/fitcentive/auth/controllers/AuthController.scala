@@ -110,7 +110,7 @@ class AuthController @Inject() (
   // -----------------------------
   // Unauthenticated routes
   // -----------------------------
-  // todo - validate on `state`? Might need distributed cache
+  // Note - this is only used for http/postman logins. Webapp/Mobileapp handle redirects on client side directly
   def oidcCallback(provider: String, clientId: String, code: String): Action[AnyContent] =
     Action.async { implicit request =>
       authApi
