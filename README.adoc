@@ -51,6 +51,41 @@ extraEnv: |
 6. For a comprehensive guide on configuring Apple sign in details, https://github.com/ChathuminaVimukthi/Keycloak-with-Apple-Signin#keycloak[refer to this link]
     - Note - Apple sign in (and push notifications) requires a paid Apple developer subscription
 
+==== Configure keycloak realms with right providers
+1. Create 4 realms while logged into the keycloak admin console as admin
+    - `NativeAuth`
+    - `GoogleAuth`
+    - `AppleAuth`
+    - `FacebookAuth`
+2. For each of these realms, to go `Configure` -> `Clients` and create 2 new clients
+    - `webapp`
+    - `mobileapp`
+3. For **every client** (2 * 4 = 8 clients), go to `client` -> `Mappers` and create the following token mappers
+    - `client_id` -> `User Session Note`
+    - `user_id` -> `User Attribute`
+    - `auth_realm` -> `User Attribute`
+4. For `webapp` clients on **all 4 realms**, navigate to `Settings` -> `Web Origins` and add
+    - `http://localhost:5555` - this is for local flutter web app development
+    - any other domains that may be requesting resources - this is to avoid CORS errors
+5. The following instructions are only for `mobileapp` and `webapp` clients for **oAuth Providers** - AppleAuth, FacebookAuth and GoogleAuth
+    - For `webapp` clients on all 3 realms, add the following values for valid redirect URIs, where `<provider>` is one of `apple`, `google` or `facebook`
+        - `http://api.vid.app/api/auth/<provider>/callback/webapp`
+        - `http://localhost:5555/auth.html`
+        - `http://localhost:9000/api/auth/<provider>/callback/webapp`
+    - For `mobileapp` clients on all 3 realms, add the following valid redirect URI
+        - `io.fitcentive.fitcentive://oidc-callback`
+    - For all clients, adjust token expiry time as desired
+6. For the oAuth realms (AppleAuth, FacebookAuth, GoogleAuth), go to `Configure` -> Identity Providers` and create the appropriate identity provider
+    - Update keycloak openId settings as provided by the auth provider itself
+7. For all realms, update the IDP's `First broken login` to `First broker login 3.0`
+    - If `First broker login 3.0` does not exist, create it in the `Configure` -> `Authentication`
+    - It should contain the following executions
+        - `Create User If Unique` -> `Alternative`
+        - `Automatically Set Existing User` -> `Alternative`
+8. For all **oAuth realms**, go to `Confgure` -> `Identity Providers` -> `realm_name` -> `Mappers` and add the following mappers
+    - `First Name, force, Attribute Importer, given_name, firstName`
+    - `Last Name, force, Attribute Importer, family_name, lastName`
+9. Alternatively, import settings into realms from exported JSON files
 
 == Running service locally
 1. This service has a dependency on the `user-service`. Either run that locally as well, or use `kubectl` port forwarding to make it available
