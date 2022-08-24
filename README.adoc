@@ -90,8 +90,10 @@ extraEnv: |
 == Running service locally
 1. This service has a dependency on the `user-service`. Either run that locally as well, or use `kubectl` port forwarding to make it available
     - `kubectl port-forward svc/user-service 9001:9000`
-2. `sbt clean run`
-3. `curl http://localhost:9000/api/auth/health` to bootstrap the server
+2. This service also needs access to a keycloak server running on port 8080
+    - `kubectl port-forward svc/auth-keycloak-http 8080:80`
+3. `sbt clean run`
+4. `curl http://localhost:9000/api/auth/health` to bootstrap the server
 
 == Deploy to minikube cluster
 
