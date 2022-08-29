@@ -15,4 +15,5 @@ POST     /api/auth/realm/:providerRealm/user                    io.fitcentive.au
 POST     /api/internal/auth/user/reset-password                 io.fitcentive.auth.controllers.AuthController.resetPassword
 POST     /api/internal/auth/user/profile                        io.fitcentive.auth.controllers.AuthController.updateUser
 POST     /api/internal/auth/user                                io.fitcentive.auth.controllers.AuthController.createNewUser
+DELETE   /api/internal/user/:email                              io.fitcentive.auth.controllers.AuthController.deleteUserByEmail(email: String, realm: String)
 

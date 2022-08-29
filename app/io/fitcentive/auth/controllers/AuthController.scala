@@ -55,6 +55,14 @@ class AuthController @Inject() (
       }
     }
 
+  def deleteUserByEmail(email: String, realm: String): Action[AnyContent] =
+    internalAuthAction.async { implicit request =>
+      authApi
+        .deleteUserByEmail(email, realm)
+        .map(_ => NoContent)
+        .recover(resultErrorAsyncHandler)
+    }
+
   // -----------------------------
   // User Auth routes
   // -----------------------------
