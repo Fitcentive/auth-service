@@ -147,4 +147,11 @@ Note - these pre-requisites need only be done **once ever**. If you are deployin
     - `openssl x509 -inform PEM -outform DER -in rootCA.pem -out rootCA.der`
 
 
-
+== Deploy to GKE Dev env
+1. Delete existing 1.0 image first
+- `gcloud container images delete gcr.io/fitcentive-dev/auth:1.0 --force-delete-tags`
+2. Build and push new docker image
+- `sbt -Dpublish.env=dev docker:publish`
+3. Ensure you are on the right `kubectl` context
+4. `cd deployment`
+5. `kubectl apply -f gke-dev-env`
