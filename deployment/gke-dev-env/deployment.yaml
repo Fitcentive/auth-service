@@ -43,6 +43,8 @@ spec:
           envFrom:
             - secretRef:
                 name: internal-service-secret
+            - secretRef:
+                name: auth-service-keycloak-admin-cli-secrets
           env:
             - name: USER_SERVICE_HOST
               value: "http://user-service.user"
