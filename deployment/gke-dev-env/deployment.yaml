@@ -51,7 +51,7 @@ spec:
             - name: USER_SERVICE_PORT
               value: "9000"
             - name: HTTP_SERVER_HOST
-              value: "http://auth.fitcentive.xyz"
+              value: "http://api.fitcentive.xyz"
             - name: HTTP_SERVER_PORT
               value: "9000"
             - name: JWT_ISSUER
