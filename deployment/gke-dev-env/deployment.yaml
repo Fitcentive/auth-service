@@ -6,7 +6,7 @@ metadata:
   labels:
     app: auth-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: auth-service
@@ -17,14 +17,14 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: gcr.io/fitcentive-dev-02/auth:1.0
+          image: gcr.io/fitcentive-dev-03/auth:1.0
           resources:
             requests:
               memory: 300Mi
-              cpu: "0.2"
+              cpu: "0.1"
             limits:
               memory: 500Mi
-              cpu: "0.5"
+              cpu: "0.2"
           ports:
             - name: http-port
               containerPort: 9000
